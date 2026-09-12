@@ -2,6 +2,23 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 日记（由 GitHub Issues 驱动）
+
+`/diary` 页面把本仓库中**带 `diary` 标签的 issue** 渲染成日记列表，不需要数据库或后台。
+
+**写一条日记**：在 GitHub 上新建 issue → 写好标题和正文 → 给它加上 `diary` 标签（标签名第一次用时可直接新建）。页面缓存 1 小时，稍后刷新即可看到。
+
+**可配置的环境变量**（都带默认值，不配置也能跑）：
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `GITHUB_OWNER` | `liwenka1` | 仓库所属用户 / 组织 |
+| `GITHUB_REPO` | `speak-mind` | 仓库名 |
+| `DIARY_LABEL` | `diary` | 作为日记的标签名 |
+| `GITHUB_TOKEN` | 空 | 可选；GitHub 匿名接口限流 60 次/小时，配只读 token 可提升到 5000 次/小时 |
+
+> `GITHUB_TOKEN` 仅在服务端读取，切勿加 `NEXT_PUBLIC_` 前缀。
+
 ## Getting Started
 
 First, run the development server:
