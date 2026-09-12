@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 本地工具（deep-code）的快照/日志目录，不是项目源码：
+    ".deep-code/**",
   ]),
 ]);
 
