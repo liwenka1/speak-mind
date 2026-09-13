@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getDiaryEntries, type DiaryEntry } from "@/lib/github";
-import { formatDate } from "@/lib/format";
+import { DiaryList } from "@/components/diary/diary-list";
 
 /** 与数据层一致的缓存时长；字面量，便于 Next.js 静态分析。 */
 export const revalidate = 3600;
@@ -47,33 +46,7 @@ export default async function DiaryPage() {
           标签的 issue 试试吧。
         </p>
       ) : (
-        <ul className="mt-12 flex flex-col gap-10">
-          {entries.map((entry) => (
-            <li
-              key={entry.id}
-              className="border-b border-zinc-200 pb-10 last:border-none dark:border-zinc-800"
-            >
-              <article>
-                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                  <h2 className="text-xl font-medium">
-                    <Link
-                      href={`/diary/${entry.id}`}
-                      className="underline-offset-4 hover:underline"
-                    >
-                      {entry.title}
-                    </Link>
-                  </h2>
-                  <time
-                    className="shrink-0 text-sm text-zinc-500 dark:text-zinc-400"
-                    dateTime={entry.createdAt}
-                  >
-                    {formatDate(entry.createdAt)}
-                  </time>
-                </div>
-              </article>
-            </li>
-          ))}
-        </ul>
+        <DiaryList entries={entries} />
       )}
     </main>
   );
