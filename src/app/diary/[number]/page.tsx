@@ -15,8 +15,14 @@ export const metadata: Metadata = {
 
 /** 构建时把已有日记预渲染成静态页；新日记则按需生成并缓存。 */
 export async function generateStaticParams() {
-  const entries = await getDiaryEntries();
-  return entries.map((entry) => ({ number: String(entry.id) }));
+  try {
+    const entries = await getDiaryEntries();
+    return entries.map((entry) => ({ number: String(entry.id) }));
+  } catch {
+    // 构建时若 GitHub 不可用 / 被限流，退化为「不预渲染」，
+    // 交给运行时按需生成，避免整个部署因此失败。
+    return [];
+  }
 }
 
 export default async function Page(props: PageProps<"/diary/[number]">) {
