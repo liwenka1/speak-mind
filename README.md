@@ -19,6 +19,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 > `GITHUB_TOKEN` 仅在服务端读取，切勿加 `NEXT_PUBLIC_` 前缀。
 
+### 部署到 Vercel
+
+1. 把仓库导入 Vercel 即可，无需额外构建配置。
+2. 在 **Settings → Environment Variables** 中添加 `GITHUB_TOKEN`（只读 PAT）。
+   - **强烈建议配置**：Vercel 的构建与函数使用**共享出口 IP**，GitHub 匿名接口 60 次/小时的额度很容易被其它用户耗尽，会导致构建失败或页面报错；配了 token 则是 5000 次/小时（按你的 token 计）。
+   - 其余变量（`GITHUB_OWNER` / `GITHUB_REPO` / `DIARY_LABEL`）都有默认值，不改也能跑。
+
 ## Getting Started
 
 First, run the development server:
