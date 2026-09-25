@@ -1,18 +1,17 @@
 /** 站点页脚。 */
 export function SiteFooter() {
   return (
-    <footer className="border-t border-zinc-200 dark:border-zinc-800">
-      <div className="mx-auto w-full max-w-3xl px-6 py-8 text-sm text-zinc-500 dark:text-zinc-400">
-        © {new Date().getFullYear()} speak-mind · 由{" "}
+    <footer className="border-t border-border">
+      <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-4 px-6 py-8 text-sm text-muted">
+        <span>© {new Date().getFullYear()} speak-mind</span>
         <a
-          href="https://nextjs.org"
+          href="https://github.com/liwenka1/speak-mind"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline-offset-4 hover:underline"
+          className="transition-colors hover:text-foreground"
         >
-          Next.js
-        </a>{" "}
-        与 GitHub Issues 驱动
+          GitHub
+        </a>
       </div>
     </footer>
   );

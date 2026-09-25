@@ -43,10 +43,10 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
   if (!entry && !errorMessage) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       <Link
         href="/diary"
-        className="text-sm text-zinc-500 underline-offset-4 hover:underline dark:text-zinc-400"
+        className="text-sm text-muted transition-colors hover:text-foreground"
       >
         ← 返回日记
       </Link>
@@ -56,11 +56,13 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
           暂时读不到这篇日记：{errorMessage}
         </p>
       ) : entry ? (
-        <article className="mt-8">
+        <article className="mt-10">
           <header>
-            <h1 className="text-3xl font-semibold tracking-tight">{entry.title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {entry.title}
+            </h1>
             <time
-              className="mt-3 inline-block text-sm text-zinc-500 dark:text-zinc-400"
+              className="mt-3 inline-block font-mono text-xs text-muted"
               dateTime={entry.createdAt}
             >
               {formatDate(entry.createdAt)}
@@ -71,7 +73,7 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
             {entry.body ? (
               <DiaryMarkdown content={entry.body} />
             ) : (
-              <p className="text-zinc-500 dark:text-zinc-400">（无正文）</p>
+              <p className="text-muted">（无正文）</p>
             )}
           </div>
 
@@ -79,7 +81,7 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
             href={entry.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-10 inline-block text-sm text-zinc-500 underline-offset-4 hover:underline dark:text-zinc-400"
+            className="mt-12 inline-block text-sm text-muted transition-colors hover:text-foreground"
           >
             在 GitHub 查看 →
           </a>

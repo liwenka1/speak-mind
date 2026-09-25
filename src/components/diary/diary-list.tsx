@@ -8,29 +8,24 @@ import { formatDate } from "@/lib/format";
  */
 export function DiaryList({ entries }: { entries: DiaryEntry[] }) {
   return (
-    <ul className="mt-12 flex flex-col gap-10">
+    <ul className="mt-12 flex flex-col gap-8">
       {entries.map((entry) => (
-        <li
-          key={entry.id}
-          className="border-b border-zinc-200 pb-10 last:border-none dark:border-zinc-800"
-        >
-          <article>
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h2 className="text-xl font-medium">
-                <Link
-                  href={`/diary/${entry.id}`}
-                  className="underline-offset-4 hover:underline"
-                >
-                  {entry.title}
-                </Link>
-              </h2>
-              <time
-                className="shrink-0 text-sm text-zinc-500 dark:text-zinc-400"
-                dateTime={entry.createdAt}
+        <li key={entry.id}>
+          <article className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2 className="text-base font-medium">
+              <Link
+                href={`/diary/${entry.id}`}
+                className="underline-offset-4 hover:underline"
               >
-                {formatDate(entry.createdAt)}
-              </time>
-            </div>
+                {entry.title}
+              </Link>
+            </h2>
+            <time
+              className="shrink-0 font-mono text-xs text-muted"
+              dateTime={entry.createdAt}
+            >
+              {formatDate(entry.createdAt)}
+            </time>
           </article>
         </li>
       ))}

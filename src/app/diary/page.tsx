@@ -21,12 +21,12 @@ export default async function DiaryPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">日记</h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <h1 className="text-2xl font-semibold tracking-tight">日记</h1>
+        <p className="mt-2 text-sm text-muted">
           内容来自 GitHub Issues —— 在仓库里打了{" "}
-          <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono dark:bg-white/[.08]">
+          <code className="rounded bg-foreground/[.06] px-1.5 py-0.5 font-mono">
             diary
           </code>{" "}
           标签的 issue 会出现在这里。
@@ -38,9 +38,9 @@ export default async function DiaryPage() {
           暂时读不到日记：{errorMessage}
         </p>
       ) : entries.length === 0 ? (
-        <p className="mt-12 text-zinc-500 dark:text-zinc-400">
+        <p className="mt-12 text-muted">
           还没有日记。去 GitHub 新建一个带{" "}
-          <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono dark:bg-white/[.08]">
+          <code className="rounded bg-foreground/[.06] px-1.5 py-0.5 font-mono">
             diary
           </code>{" "}
           标签的 issue 试试吧。

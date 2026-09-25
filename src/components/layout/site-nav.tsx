@@ -13,7 +13,7 @@ export function SiteNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-6 text-sm">
+    <nav className="flex items-center gap-5 text-sm">
       {NAV_ITEMS.map((item) => {
         const active =
           item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -24,8 +24,8 @@ export function SiteNav() {
             href={item.href}
             className={
               active
-                ? "font-medium text-zinc-900 dark:text-zinc-50"
-                : "text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+                ? "text-foreground"
+                : "text-muted transition-colors hover:text-foreground"
             }
           >
             {item.label}
