@@ -1,28 +1,35 @@
 @import "tailwindcss";
 
+/* 用 class 控制暗色模式（配合 next-themes 写入 <html class="dark">），而非跟随系统媒体查询 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted: #9ca3af;
+  --border: #27272a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
 /* 日记 Markdown 正文的基础可读性样式（后期可替换为 @tailwindcss/typography） */
@@ -62,8 +69,13 @@ body {
   margin: 1em 0;
 }
 .diary-markdown a {
-  color: #3b82f6;
+  color: inherit;
   text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--muted);
+}
+.diary-markdown a:hover {
+  text-decoration-color: var(--foreground);
 }
 .diary-markdown ul,
 .diary-markdown ol {
@@ -77,20 +89,20 @@ body {
 }
 .diary-markdown blockquote {
   padding-left: 1em;
-  border-left: 3px solid rgba(128, 128, 128, 0.4);
-  color: #737373;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
 }
 .diary-markdown code {
   padding: 0.15em 0.4em;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.06);
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
   font-size: 0.9em;
 }
 .diary-markdown pre {
   padding: 1em;
   border-radius: 8px;
   overflow-x: auto;
-  background: rgba(0, 0, 0, 0.05);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
 }
 .diary-markdown pre code {
   padding: 0;
@@ -103,7 +115,7 @@ body {
 .diary-markdown hr {
   margin: 2em 0;
   border: none;
-  border-top: 1px solid rgba(128, 128, 128, 0.3);
+  border-top: 1px solid var(--border);
 }
 .diary-markdown table {
   border-collapse: collapse;
@@ -111,14 +123,6 @@ body {
 }
 .diary-markdown th,
 .diary-markdown td {
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  border: 1px solid var(--border);
   padding: 0.4em 0.6em;
-}
-@media (prefers-color-scheme: dark) {
-  .diary-markdown code {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  .diary-markdown pre {
-    background: rgba(255, 255, 255, 0.06);
-  }
 }
