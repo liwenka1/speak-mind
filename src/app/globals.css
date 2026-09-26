@@ -118,10 +118,6 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-body {
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
-}
-
 /* 日记 Markdown 正文的基础可读性样式（后期可替换为 @tailwindcss/typography） */
 .diary-markdown {
   line-height: 1.75;
@@ -224,7 +220,21 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  /* 正文：拉丁走 Noto Sans，汉字回退到系统黑体（苹方 / 微软雅黑 等） */
   html {
-    @apply font-sans;
+    font-family:
+      var(--font-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+      "Noto Sans CJK SC", system-ui, sans-serif;
+  }
+  /* 标题：拉丁走 Playfair Display（衬线），汉字回退到系统宋体 */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      var(--font-heading), "Songti SC", "SimSun", "Noto Serif CJK SC",
+      "Source Han Serif SC", serif;
   }
 }
