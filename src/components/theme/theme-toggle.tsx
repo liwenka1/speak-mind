@@ -58,7 +58,7 @@ export function ThemeToggle() {
       type="button"
       aria-label="切换日夜模式"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      className="flex size-7 items-center justify-center rounded-md text-muted transition-colors hover:text-foreground"
+      className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
     >
       <MoonIcon className="dark:hidden" />
       <SunIcon className="hidden dark:block" />

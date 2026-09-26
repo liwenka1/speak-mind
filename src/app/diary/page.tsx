@@ -24,25 +24,21 @@ export default async function DiaryPage() {
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">日记</h1>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 text-sm text-muted-foreground">
           内容来自 GitHub Issues —— 在仓库里打了{" "}
-          <code className="rounded bg-foreground/[.06] px-1.5 py-0.5 font-mono">
-            diary
-          </code>{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">diary</code>{" "}
           标签的 issue 会出现在这里。
         </p>
       </header>
 
       {errorMessage ? (
-        <p className="mt-12 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p className="mt-12 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           暂时读不到日记：{errorMessage}
         </p>
       ) : entries.length === 0 ? (
-        <p className="mt-12 text-muted">
+        <p className="mt-12 text-muted-foreground">
           还没有日记。去 GitHub 新建一个带{" "}
-          <code className="rounded bg-foreground/[.06] px-1.5 py-0.5 font-mono">
-            diary
-          </code>{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">diary</code>{" "}
           标签的 issue 试试吧。
         </p>
       ) : (

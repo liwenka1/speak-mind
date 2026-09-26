@@ -21,7 +21,7 @@ export function DiaryList({ entries }: { entries: DiaryEntry[] }) {
               </Link>
             </h2>
             <time
-              className="shrink-0 font-mono text-xs text-muted"
+              className="shrink-0 font-mono text-xs text-muted-foreground"
               dateTime={entry.createdAt}
             >
               {formatDate(entry.createdAt)}

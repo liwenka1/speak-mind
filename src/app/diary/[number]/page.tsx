@@ -46,13 +46,13 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       <Link
         href="/diary"
-        className="text-sm text-muted transition-colors hover:text-foreground"
+        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         ← 返回日记
       </Link>
 
       {errorMessage ? (
-        <p className="mt-10 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p className="mt-10 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           暂时读不到这篇日记：{errorMessage}
         </p>
       ) : entry ? (
@@ -62,7 +62,7 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
               {entry.title}
             </h1>
             <time
-              className="mt-3 inline-block font-mono text-xs text-muted"
+              className="mt-3 inline-block font-mono text-xs text-muted-foreground"
               dateTime={entry.createdAt}
             >
               {formatDate(entry.createdAt)}
@@ -73,7 +73,7 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
             {entry.body ? (
               <DiaryMarkdown content={entry.body} />
             ) : (
-              <p className="text-muted">（无正文）</p>
+              <p className="text-muted-foreground">（无正文）</p>
             )}
           </div>
 
@@ -81,7 +81,7 @@ export default async function Page(props: PageProps<"/diary/[number]">) {
             href={entry.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-12 inline-block text-sm text-muted transition-colors hover:text-foreground"
+            className="mt-12 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             在 GitHub 查看 →
           </a>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { href: "/", label: "首页" },
@@ -22,11 +23,11 @@ export function SiteNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={
+            className={cn(
               active
                 ? "text-foreground"
-                : "text-muted transition-colors hover:text-foreground"
-            }
+                : "text-muted-foreground transition-colors hover:text-foreground",
+            )}
           >
             {item.label}
           </Link>
