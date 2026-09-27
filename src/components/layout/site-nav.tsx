@@ -3,18 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { sectionPath, siteConfig } from "@/config/site";
 
+/** 导航 = 首页 + 配置里的分区 + 关于 */
 const NAV_ITEMS = [
   { href: "/", label: "首页" },
-  { href: "/diary", label: "日记" },
-] as const;
+  ...siteConfig.sections.map((section) => ({
+    href: sectionPath(section.label),
+    label: section.title,
+  })),
+  { href: "/about", label: "关于" },
+];
 
-/** 顶部导航：根据当前路径高亮所在项（需要 pathname，所以是客户端组件）。 */
 export function SiteNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center gap-5 text-sm">
+    <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm sm:gap-x-5">
       {NAV_ITEMS.map((item) => {
         const active =
           item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

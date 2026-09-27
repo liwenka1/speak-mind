@@ -1,12 +1,13 @@
 import Link from "next/link";
-import type { DiaryEntry } from "@/lib/github";
+import type { Entry } from "@/lib/github";
 import { formatDate } from "@/lib/format";
+import { entryPath } from "@/config/site";
 
 /**
- * 纯展示组件：接收日记数据并渲染列表。
- * 不直接接触 GitHub / 网络，数据由页面传入，方便以后独立调整 UI。
+ * 纯展示组件：接收内容数据并渲染列表。
+ * 不直接接触 GitHub / 网络，数据由页面传入，方便独立调整 UI。
  */
-export function DiaryList({ entries }: { entries: DiaryEntry[] }) {
+export function EntryList({ entries }: { entries: Entry[] }) {
   return (
     <ul className="mt-12 flex flex-col gap-8">
       {entries.map((entry) => (
@@ -14,7 +15,7 @@ export function DiaryList({ entries }: { entries: DiaryEntry[] }) {
           <article className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h2 className="text-base font-medium">
               <Link
-                href={`/diary/${entry.id}`}
+                href={entryPath(entry.id)}
                 className="underline-offset-4 hover:underline"
               >
                 {entry.title}

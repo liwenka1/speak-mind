@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { sectionPath, siteConfig } from "@/config/site";
 
 const linkClass =
   "underline underline-offset-4 decoration-border transition-colors hover:decoration-foreground";
@@ -27,6 +28,23 @@ export default function Home() {
       </section>
 
       <section className="mt-12">
+        <h2 className="text-sm font-medium text-muted-foreground">分区</h2>
+        <ul className="mt-3 space-y-1.5">
+          {siteConfig.sections.map((section) => (
+            <li key={section.label}>
+              <Link href={sectionPath(section.label)} className={linkClass}>
+                {section.title}
+              </Link>
+              <span className="text-muted-foreground">
+                {" "}
+                —— 打上 {section.label} 标签的 issue
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-12">
         <h2 className="text-sm font-medium text-muted-foreground">找我</h2>
         <ul className="mt-3 space-y-1.5">
           <li>
@@ -42,21 +60,6 @@ export default function Home() {
           {/* TODO: 换成你的邮箱 / 其它平台 */}
           <li>邮箱（待填）</li>
         </ul>
-      </section>
-
-      <section className="mt-12">
-        <h2 className="text-sm font-medium text-muted-foreground">日记</h2>
-        <p className="mt-3">
-          三言两语都记在 GitHub Issues 里 —— 仓库中打上{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.9em]">
-            diary
-          </code>{" "}
-          标签的 issue，会出现在{" "}
-          <Link href="/diary" className={linkClass}>
-            日记
-          </Link>{" "}
-          页面。
-        </p>
       </section>
     </main>
   );
