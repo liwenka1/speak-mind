@@ -9,7 +9,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -38,12 +37,11 @@ export function ThemeToggle() {
         <SunIcon className="hidden dark:block" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>主题</DropdownMenuLabel>
-        <DropdownMenuSeparator />
         <DropdownMenuRadioGroup
           value={theme}
           onValueChange={(value) => setTheme(value as string)}
         >
+          <DropdownMenuLabel>主题</DropdownMenuLabel>
           {THEME_OPTIONS.map((option) => (
             <DropdownMenuRadioItem key={option.value} value={option.value}>
               {option.label}
