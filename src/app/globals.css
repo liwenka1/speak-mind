@@ -237,4 +237,9 @@
       var(--font-heading), "Songti SC", "SimSun", "Noto Serif CJK SC",
       "Source Han Serif SC", serif;
   }
+  /* Tailwind v4 默认把按钮光标设为 default，这里统一改回 pointer */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
