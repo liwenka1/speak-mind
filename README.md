@@ -11,15 +11,16 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 站点的**所有信息与文案**都集中在 [`src/config/site.ts`](src/config/site.ts)，组件里不写死任何一句话 —— 改站名、改口号、改措辞都只动这一个文件。
 
 ```ts
-name: "speak-mind",        // 顶栏站名 / 页脚版权 / <title> 后缀
-lang: "zh-CN",             // <html lang>
-description: "…",          // 首页的 meta description
+name: "speak-mind",          // 顶栏站名 / 页脚版权 / <title> 后缀
+lang: "zh-CN",               // <html lang>，也是日期格式化的语言
+timeZone: "Asia/Shanghai",   // 日期显示的时区
+description: "…",            // 首页的 meta description
 author: {
-  name: "liwenka1",        // 首页自我介绍里的名字（会加粗显示）
-  email: "",               // 填了就自动出现在首页「找我」与页脚
-  links: [{ label: "GitHub", href: "https://github.com/liwenka1" }],
+  name: "liwenka1",          // 首页自我介绍里的名字（会加粗显示）
+  email: "",                 // 填了就自动出现在首页「找我」与页脚
+  links: [],                 // 其他平台外链；GitHub 主页不用写这里
 },
-repo: { owner: "liwenka1", name: "speak-mind" },  // 内容仓库，页脚「源码」链接由它推导
+github: { user: "liwenka1", repo: "speak-mind" },  // 个人主页与仓库地址都由它推导
 pages: {
   home: { href: "/", title: "首页" },
   about: { href: "/about", title: "关于" },
@@ -37,10 +38,11 @@ text: {                    // 页面文案，按页面分组
     sections: { title: "分区", hint: " —— 打上 {label} 标签的 issue" },
     contact: { title: "找我" },
   },
-  about: { description: "关于 {name}", lead: "…", paragraphs: ["…"] },
+  about: { description: "{title} {name}", lead: "…", paragraphs: ["…"] },
   section: { … },          // 分区列表页的说明 / 空状态 / 出错提示
   entry: { … },            // 内容详情页的文案
-  footer: { copyright: "© {year} {name}", source: "源码" },
+  footer: { copyright: "© {year} {name}" },
+  links: { github: "GitHub", email: "邮箱", source: "源码" },  // 推导链接的显示名
   titleTemplate: "%s · {name}",
   theme: { … }, common: { … },
 },
@@ -53,6 +55,17 @@ text: {                    // 页面文案，按页面分组
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
 - 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
 - 「关于」页正文按段配置：`lead` 是首段（正常字色），`paragraphs` 是后续段落（浅色），可增删。
+
+### 去重规则
+
+同一个**事实**只写一次，其他地方一律引用或推导：
+
+- **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、仓库地址（`repoUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
+- **名字不重抄**：页面名字写在 `pages` / `sections` 里，别处的文案要引用就写占位符（如关于页 description 的 `{title}`）。
+- **值恰好相同 ≠ 同一个事实**：`author.name`（显示名）与 `github.user`（GitHub 用户名）当前都是 `liwenka1`，但将来会各自变化（比如显示名改成中文名），所以故意分开配置，不要合并。
+- `lang` / `timeZone` 也同时供日期格式化使用（见 [`src/lib/format.ts`](src/lib/format.ts)），改一处全站生效。
+
+有些重复是**故意保留**的（去重只针对「会一起变化的事实」）：`github.repo` 与 `name` 可能同值但语义不同（不默认取站名，避免静默指向错仓库）；`package.json` 的包名读不到 TS 配置；README 的示例需与配置同步。
 
 ### 写内容
 
