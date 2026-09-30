@@ -1,11 +1,32 @@
 /**
  * 站点配置 —— 全站信息的唯一来源。
  *
- * 个人信息、口号、页面文案、外链、分区都写在这里，组件里不再出现硬编码文案：
- * 想改站点的任何一句话，只动这个文件。
+ * ## 结构规则
  *
- * 文案里的 `{xxx}` 是占位符（见 `src/lib/template.ts`），渲染时填值：
- * 整句写在配置里，动态的值（站名、标签名、年份、错误信息）由代码填入。
+ * 1. **站点身份**：`name` / `lang` / `timeZone` / `description`
+ * 2. **人**：`author`（显示名、邮箱、其他外链）、`github`（用户名、仓库名）
+ * 3. **页面**：`pages`（固定页）、`sections`（分区）、`text`（文案，键与页面对应）
+ *
+ * ## 去重规则（重要）
+ *
+ * 同一个**事实**只写一次，其他地方一律引用或推导：
+ * - URL 不是独立事实：GitHub 主页与仓库地址都由 `github` 拼出来（见 `githubUrl` / `repoUrl`），
+ *   不要在配置里手写 `https://github.com/...`；
+ * - 页面名字写在 `pages` / `sections` 里，文案要用时写 `{title}`，不要重抄一遍；
+ * - 站名、年份、标签名、错误信息分别用 `{name}` `{year}` `{label}` `{error}` 占位符填入。
+ * - 但「值恰好相同」不等于「同一个事实」：作者显示名（`author.name`）与 GitHub 用户名
+ *   （`github.user`）当前都是 liwenka1，将来会各自变化（比如显示名改成中文名），
+ *   所以**故意分开配置**，不要合并。
+ *
+ * ## 可以接受的重复
+ *
+ * 去重只针对「会一起变化的事实」，下面这些重复是**故意**的，不要"优化"掉：
+ * - `github.repo` 与 `name` 可能同值，但站名与仓库名是两个事实（见字段注释）；
+ * - `package.json` 的包名与 `name`：npm 标识读不到 TS 配置；
+ * - 上面的 `type SiteConfig` 与下面的字面量：类型是形状契约，换来编辑期校验与补全；
+ * - README 里的配置示例：文档，需与配置同步。
+ *
+ * 文案里的 `{xxx}` 占位符由 `src/lib/template.ts` 填充。
  */
 
 export type SiteLink = {
@@ -32,25 +53,44 @@ export type SiteSection = {
 type SiteConfig = {
   /** 站名：顶栏、页脚版权、页面标题后缀都用它 */
   name: string;
-  /** <html lang> */
+  /** <html lang>，也是日期格式化用的语言 */
   lang: string;
+  /** 日期显示使用的时区 */
+  timeZone: string;
   /** 站点描述：首页的 meta description */
   description: string;
 
-  /** 个人信息 */
+  /** 站长本人 */
   author: {
-    /** 作者名：首页自我介绍里会加粗显示 */
+    /** 显示名：首页自我介绍里会加粗显示 */
     name: string;
-    /** 想公开邮箱就填这里（首页「找我」与页脚会自动多出一条链接）；留空则不显示 */
+    /** 邮箱：填了就自动出现在首页「找我」与页脚；留空则不显示 */
     email: string;
-    /** 作者外链：首页「找我」与页脚共用同一份 */
+    /**
+     * 其他平台的外链（X、微博、Telegram…）。
+     *
+     * GitHub 主页与邮箱由 `github` / `author.email` 推导，**不要写在这里**，
+     * 否则同一个地址会出现在两个地方。
+     */
     links: SiteLink[];
   };
 
-  /** 存放内容的 GitHub 仓库（页脚的「源码」链接也由它推导） */
-  repo: {
-    owner: string;
-    name: string;
+  /**
+   * GitHub：用户名与仓库名各写一次。
+   *
+   * 个人主页（`githubUrl()`）与内容仓库地址（`repoUrl()`）都由这里拼出来，
+   * 所以配置里、组件里都不该再出现完整的 github.com 链接。
+   */
+  github: {
+    /** 用户名 */
+    user: string;
+    /**
+     * 存放内容的仓库名。
+     *
+     * 故意不默认取 `name`：站名与仓库名是两个事实，站名改了仓库未必改，
+     * "留空就用站名"会把错仓库静默拼进链接，宁可多写一行。
+     */
+    repo: string;
   };
 
   /**
@@ -96,7 +136,7 @@ type SiteConfig = {
 
     /** 关于页 */
     about: {
-      /** 浏览器标签页上的描述；`{name}` 站名 */
+      /** 浏览器标签页上的描述；`{title}` 关于页标题、`{name}` 站名 */
       description: string;
       /** 首段（正常字色） */
       lead: string;
@@ -130,7 +170,15 @@ type SiteConfig = {
     footer: {
       /** `{year}` 当前年份、`{name}` 站名 */
       copyright: string;
-      /** 指向内容仓库的链接文案 */
+    };
+
+    /** 由配置推导出来的链接的显示名（地址本身由 github / author.email 推导） */
+    links: {
+      /** GitHub 个人主页 */
+      github: string;
+      /** 邮箱 */
+      email: string;
+      /** 本站源码（内容仓库） */
       source: string;
     };
 
@@ -156,17 +204,19 @@ type SiteConfig = {
 export const siteConfig: SiteConfig = {
   name: "speak-mind",
   lang: "zh-CN",
+  timeZone: "Asia/Shanghai",
   description: "个人主页与日记 —— 由 Next.js 与 GitHub Issues 驱动。",
 
   author: {
     name: "liwenka1",
     email: "",
-    links: [{ label: "GitHub", href: "https://github.com/liwenka1" }],
+    // GitHub 主页不写这里，见下面的 github 配置
+    links: [],
   },
 
-  repo: {
-    owner: "liwenka1",
-    name: "speak-mind",
+  github: {
+    user: "liwenka1",
+    repo: "speak-mind",
   },
 
   pages: {
@@ -202,7 +252,7 @@ export const siteConfig: SiteConfig = {
     },
 
     about: {
-      description: "关于 {name}",
+      description: "{title} {name}",
       lead: "这里是「关于」页的占位内容 —— 可以写你是谁、在做什么、为什么写这个站点。",
       paragraphs: [
         "本站用 Next.js 搭建，内容直接以 GitHub Issues 作为数据源：给 issue 打上对应分区的标签，它就会出现在相应页面里。",
@@ -224,6 +274,11 @@ export const siteConfig: SiteConfig = {
 
     footer: {
       copyright: "© {year} {name}",
+    },
+
+    links: {
+      github: "GitHub",
+      email: "邮箱",
       source: "源码",
     },
 
@@ -241,16 +296,32 @@ export const siteConfig: SiteConfig = {
   },
 };
 
-/** 内容仓库地址（页脚的「源码」链接用） */
-export function repoUrl(): string {
-  const { owner, name } = siteConfig.repo;
-  return `https://github.com/${owner}/${name}`;
+/** GitHub 个人主页（由 github.user 推导） */
+export function githubUrl(): string {
+  return `https://github.com/${siteConfig.github.user}`;
 }
 
-/** 作者外链：配了邮箱就自动补一条 mailto，省得在页面上写死 */
+/** 内容仓库地址（由 github 推导，页脚「源码」链接用） */
+export function repoUrl(): string {
+  const { user, repo } = siteConfig.github;
+  return `https://github.com/${user}/${repo}`;
+}
+
+/**
+ * 首页「找我」与页脚共用的外链。
+ *
+ * GitHub 主页与邮箱都在这里由配置推导出来，所以 `author.links` 只放其他平台，
+ * 否则同一个地址会写在两个地方。
+ */
 export function authorLinks(): SiteLink[] {
   const { email, links } = siteConfig.author;
-  return email ? [...links, { label: "邮箱", href: `mailto:${email}` }] : links;
+  const labels = siteConfig.text.links;
+
+  return [
+    { label: labels.github, href: githubUrl() },
+    ...(email ? [{ label: labels.email, href: `mailto:${email}` }] : []),
+    ...links,
+  ];
 }
 
 /** 分区列表页路径 */

@@ -60,8 +60,8 @@ const cacheConfig = {
 };
 
 function issuesEndpoint(): string {
-  const { owner, name } = siteConfig.repo;
-  return `${GITHUB_API}/repos/${owner}/${name}/issues`;
+  const { user, repo } = siteConfig.github;
+  return `${GITHUB_API}/repos/${user}/${repo}/issues`;
 }
 
 function toEntry(issue: GitHubIssue): Entry {

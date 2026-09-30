@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   // 后缀「· 站名」由根布局的 title.template 统一补上，这里只给短标题
   title: siteConfig.pages.about.title,
   description: fill(siteConfig.text.about.description, {
+    title: siteConfig.pages.about.title,
     name: siteConfig.name,
   }),
 };

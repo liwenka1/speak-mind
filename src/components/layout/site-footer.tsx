@@ -4,7 +4,7 @@ import { fill } from "@/lib/template";
 
 /** 页脚链接：本站源码 + 配置里的作者外链。 */
 const FOOTER_LINKS = [
-  { label: siteConfig.text.footer.source, href: repoUrl() },
+  { label: siteConfig.text.links.source, href: repoUrl() },
   ...authorLinks(),
 ];
 
