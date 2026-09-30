@@ -1,34 +1,41 @@
 import Link from "next/link";
-import { sectionPath, siteConfig } from "@/config/site";
+import { SiteLinkList } from "@/components/layout/site-links";
+import { authorLinks, sectionPath, siteConfig } from "@/config/site";
+import { fillNodes } from "@/lib/template";
 
 const linkClass =
   "underline underline-offset-4 decoration-border transition-colors hover:decoration-foreground";
+
+/** 首页文案全部来自 siteConfig.text.home，这里不写死任何句子 */
+const text = siteConfig.text.home;
 
 export default function Home() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16 text-[15px] leading-7">
       <section className="space-y-4">
         <p>
-          Hey! 我是 <span className="font-medium">liwenka1</span>
-          {/* TODO: 换成你自己的介绍 */}
-          ，一个喜欢把想法随手记下来的人。
+          {text.greeting.before}
+          <span className="font-medium">{siteConfig.author.name}</span>
+          {text.greeting.after}
         </p>
-        <p className="text-muted-foreground">
-          这里放一段更长的自我介绍：比如你在做什么、关心什么、平时写点什么。
-        </p>
+        <p className="text-muted-foreground">{text.intro}</p>
       </section>
 
       <section className="mt-12">
-        <h2 className="text-sm font-medium text-muted-foreground">在做</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {text.doing.title}
+        </h2>
         <ul className="mt-3 space-y-1.5">
-          {/* TODO: 换成你真正在做的事 */}
-          <li>某个项目 / 工作 —— 一句话说明</li>
-          <li>另一件事 —— 一句话说明</li>
+          {text.doing.items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
       </section>
 
       <section className="mt-12">
-        <h2 className="text-sm font-medium text-muted-foreground">分区</h2>
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {text.sections.title}
+        </h2>
         <ul className="mt-3 space-y-1.5">
           {siteConfig.sections.map((section) => (
             <li key={section.label}>
@@ -36,8 +43,7 @@ export default function Home() {
                 {section.title}
               </Link>
               <span className="text-muted-foreground">
-                {" "}
-                —— 打上 {section.label} 标签的 issue
+                {fillNodes(text.sections.hint, { label: section.label })}
               </span>
             </li>
           ))}
@@ -45,21 +51,15 @@ export default function Home() {
       </section>
 
       <section className="mt-12">
-        <h2 className="text-sm font-medium text-muted-foreground">找我</h2>
-        <ul className="mt-3 space-y-1.5">
-          <li>
-            <a
-              href="https://github.com/liwenka1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={linkClass}
-            >
-              GitHub
-            </a>
-          </li>
-          {/* TODO: 换成你的邮箱 / 其它平台 */}
-          <li>邮箱（待填）</li>
-        </ul>
+        <h2 className="text-sm font-medium text-muted-foreground">
+          {text.contact.title}
+        </h2>
+        {/* 链接在 src/config/site.ts 的 author.links / author.email 里配置 */}
+        <SiteLinkList
+          links={authorLinks()}
+          className="mt-3 space-y-1.5"
+          linkClassName={linkClass}
+        />
       </section>
     </main>
   );

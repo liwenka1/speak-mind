@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { siteConfig } from "@/config/site";
+import { fill } from "@/lib/template";
 import { cn } from "@/lib/utils";
 
 const playfairDisplayHeading = Playfair_Display({
@@ -21,15 +23,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/**
+ * 站名与描述来自 siteConfig；子页面只要给个短标题，
+ * 后缀由 template 自动补成「某某 · 站名」。
+ */
 export const metadata: Metadata = {
-  title: "speak-mind",
-  description: "个人主页与日记 —— 由 Next.js 与 GitHub Issues 驱动。",
+  title: {
+    default: siteConfig.name,
+    template: fill(siteConfig.text.titleTemplate, { name: siteConfig.name }),
+  },
+  description: siteConfig.description,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="zh-CN"
+      lang={siteConfig.lang}
       suppressHydrationWarning
       className={cn(
         "h-full antialiased",

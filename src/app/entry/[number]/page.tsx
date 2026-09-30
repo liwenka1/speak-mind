@@ -5,6 +5,7 @@ import { getEntry, getEntriesByLabels, type Entry } from "@/lib/github";
 import { formatDate } from "@/lib/format";
 import { Markdown } from "@/components/entry/markdown";
 import { sectionPath, siteConfig } from "@/config/site";
+import { fill } from "@/lib/template";
 
 /** 与数据层一致的缓存时长；字面量，便于 Next.js 静态分析。 */
 export const revalidate = 3600;
@@ -18,7 +19,7 @@ export async function generateMetadata(
 
   try {
     const entry = await getEntry(id);
-    return entry ? { title: `${entry.title} · ${siteConfig.name}` } : {};
+    return entry ? { title: entry.title } : {};
   } catch {
     return {};
   }
@@ -49,7 +50,10 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
   try {
     entry = await getEntry(id);
   } catch (error) {
-    errorMessage = error instanceof Error ? error.message : "未知错误";
+    errorMessage =
+      error instanceof Error
+        ? error.message
+        : siteConfig.text.common.unknownError;
   }
 
   // 接口明确 404（issue 不存在），进入 Next 的 404 页
@@ -68,7 +72,7 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
         <>
           <BackHome />
           <p className="mt-10 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-            暂时读不到这篇内容：{errorMessage}
+            {fill(siteConfig.text.entry.error, { error: errorMessage })}
           </p>
         </>
       ) : entry ? (
@@ -105,7 +109,9 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             {entry.body ? (
               <Markdown content={entry.body} />
             ) : (
-              <p className="text-muted-foreground">（无正文）</p>
+              <p className="text-muted-foreground">
+                {siteConfig.text.entry.emptyBody}
+              </p>
             )}
           </div>
 
@@ -115,7 +121,7 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             rel="noopener noreferrer"
             className="mt-12 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            在 GitHub 查看 →
+            {siteConfig.text.entry.viewOnGitHub}
           </a>
         </article>
       ) : null}
@@ -126,10 +132,10 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
 function BackHome() {
   return (
     <Link
-      href="/"
+      href={siteConfig.pages.home.href}
       className="text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
-      ← 首页
+      ← {siteConfig.pages.home.title}
     </Link>
   );
 }

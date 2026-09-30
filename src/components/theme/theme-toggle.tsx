@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
 
 const subscribeNoop = () => () => {};
 /** 服务端（以及客户端首帧）返回 false，水合结束后返回 true。 */
@@ -31,12 +32,19 @@ export function ThemeToggle() {
   );
 
   const isDark = isHydrated && resolvedTheme === "dark";
+  const { theme } = siteConfig.text;
+  // 水合完成前主题还没定下来，用中性文案，别让读屏念出相反的操作
+  const label = isHydrated
+    ? isDark
+      ? theme.toLight
+      : theme.toDark
+    : theme.unknown;
 
   return (
     <Button
       variant="ghost"
       size="icon-sm"
-      aria-label={isHydrated ? (isDark ? "切换到浅色" : "切换到深色") : "切换主题"}
+      aria-label={label}
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       <MoonIcon className="dark:hidden" />

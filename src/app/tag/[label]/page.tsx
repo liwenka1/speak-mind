@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { getEntriesByLabel, type Entry } from "@/lib/github";
 import { findSection, siteConfig } from "@/config/site";
+import { fill, fillNodes } from "@/lib/template";
 import { EntryList } from "@/components/entry/entry-list";
 
 /** 与数据层一致的缓存时长；字面量，便于 Next.js 静态分析。 */
@@ -19,8 +21,12 @@ export async function generateMetadata(
   const section = findSection(label);
   if (!section) return {};
   return {
-    title: `${section.title} · ${siteConfig.name}`,
-    description: `${siteConfig.name} 的${section.title}`,
+    // 后缀「· 站名」由根布局的 title.template 统一补上
+    title: section.title,
+    description: fill(siteConfig.text.section.description, {
+      name: siteConfig.name,
+      title: section.title,
+    }),
   };
 }
 
@@ -29,13 +35,18 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
   const section = findSection(label);
   if (!section) notFound();
 
+  const text = siteConfig.text.section;
+
   let entries: Entry[] = [];
   let errorMessage: string | null = null;
 
   try {
     entries = await getEntriesByLabel(section.label);
   } catch (error) {
-    errorMessage = error instanceof Error ? error.message : "未知错误";
+    errorMessage =
+      error instanceof Error
+        ? error.message
+        : siteConfig.text.common.unknownError;
   }
 
   return (
@@ -45,29 +56,28 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
           {section.title}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          来自 GitHub Issues —— 打了{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            {section.label}
-          </code>{" "}
-          标签的内容会出现在这里。
+          {fillNodes(text.hint, { label: <LabelCode>{section.label}</LabelCode> })}
         </p>
       </header>
 
       {errorMessage ? (
         <p className="mt-12 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          暂时读不到内容：{errorMessage}
+          {fill(text.error, { error: errorMessage })}
         </p>
       ) : entries.length === 0 ? (
         <p className="mt-12 text-muted-foreground">
-          这里还是空的。去 GitHub 新建一个带{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            {section.label}
-          </code>{" "}
-          标签的 issue 试试吧。
+          {fillNodes(text.empty, { label: <LabelCode>{section.label}</LabelCode> })}
         </p>
       ) : (
         <EntryList entries={entries} />
       )}
     </main>
+  );
+}
+
+/** 行内 code 样式的标签名，出现在说明与空状态文案里 */
+function LabelCode({ children }: { children: ReactNode }) {
+  return (
+    <code className="rounded bg-muted px-1.5 py-0.5 font-mono">{children}</code>
   );
 }
