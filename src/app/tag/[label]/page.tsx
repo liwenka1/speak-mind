@@ -1,10 +1,23 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import {
+  ArrowUpRightIcon,
+  SquarePenIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
 import { getEntriesByLabel, type Entry } from "@/lib/github";
-import { findSection, siteConfig } from "@/config/site";
+import { findSection, newIssueUrl, siteConfig } from "@/config/site";
 import { fill, fillNodes } from "@/lib/template";
 import { EntryList } from "@/components/entry/entry-list";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+} from "@/components/ui/empty";
 
 /** 与数据层一致的缓存时长；字面量，便于 Next.js 静态分析。 */
 export const revalidate = 3600;
@@ -52,22 +65,61 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {section.title}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {fillNodes(text.hint, { label: <LabelCode>{section.label}</LabelCode> })}
-        </p>
+        {/*
+          分区名不再用大标题重复 —— 顶栏导航已经高亮当前分区。
+          留一个 sr-only 的 h1 只是给屏幕阅读器和文档大纲用，视觉上不显示。
+        */}
+        <h1 className="sr-only">{section.title}</h1>
+        {/* 有内容时才需要这段说明；空状态里由 Empty 的文案承担同一件事 */}
+        {entries.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {fillNodes(text.hint, {
+              label: <LabelCode>{section.label}</LabelCode>,
+            })}
+          </p>
+        )}
       </header>
 
       {errorMessage ? (
-        <p className="mt-12 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          {fill(text.error, { error: errorMessage })}
-        </p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon" className="text-destructive">
+              <TriangleAlertIcon />
+            </EmptyMedia>
+            <EmptyDescription>
+              {fill(text.error, { error: errorMessage })}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : entries.length === 0 ? (
-        <p className="mt-12 text-muted-foreground">
-          {fillNodes(text.empty, { label: <LabelCode>{section.label}</LabelCode> })}
-        </p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <SquarePenIcon />
+            </EmptyMedia>
+            <EmptyDescription>
+              {fillNodes(text.empty.description, {
+                label: <LabelCode>{section.label}</LabelCode>,
+              })}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            {/*
+              这是个跳转链接，不是按钮：所以用 buttonVariants 给它按钮的样式，
+              而不是用 Button 组件（Base UI 的 Button 渲染成 <a> 时会加上
+              role="button" / tabindex="0"，读屏会把链接念成按钮）。
+            */}
+            <a
+              href={newIssueUrl(section.label)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              {text.empty.action}
+              <ArrowUpRightIcon data-icon="inline-end" />
+            </a>
+          </EmptyContent>
+        </Empty>
       ) : (
         <EntryList entries={entries} />
       )}

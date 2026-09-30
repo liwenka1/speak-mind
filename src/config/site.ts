@@ -150,9 +150,14 @@ type SiteConfig = {
       description: string;
       /** 标题下的说明；`{label}` 渲染成 code 样式的标签名 */
       hint: string;
-      /** 该分区还没内容时 */
-      empty: string;
-      /** 读取失败时；`{error}` 是具体错误 */
+      /** 该分区还没内容时的空状态（用 shadcn 的 Empty 组件渲染） */
+      empty: {
+        /** 说明；`{label}` 渲染成 code 样式的标签名 */
+        description: string;
+        /** 按钮文案：点进 GitHub 新建 issue，分区标签已预填 */
+        action: string;
+      };
+      /** 读取失败时（也用 Empty 渲染）；`{error}` 是具体错误 */
       error: string;
     };
 
@@ -262,7 +267,10 @@ export const siteConfig: SiteConfig = {
     section: {
       description: "{name} 的{title}",
       hint: "来自 GitHub Issues —— 打了 {label} 标签的内容会出现在这里。",
-      empty: "这里还是空的。去 GitHub 新建一个带 {label} 标签的 issue 试试吧。",
+      empty: {
+        description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
+        action: "去 GitHub 写一条",
+      },
       error: "暂时读不到内容：{error}",
     },
 
@@ -305,6 +313,12 @@ export function githubUrl(): string {
 export function repoUrl(): string {
   const { user, repo } = siteConfig.github;
   return `https://github.com/${user}/${repo}`;
+}
+
+/** 新建 issue 的地址（分区标签已预填），空状态里的按钮用 */
+export function newIssueUrl(label: string): string {
+  const { user, repo } = siteConfig.github;
+  return `https://github.com/${user}/${repo}/issues/new?labels=${encodeURIComponent(label)}`;
 }
 
 /**

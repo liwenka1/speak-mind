@@ -17,11 +17,13 @@ export default function AboutPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16 text-[15px] leading-7">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        {siteConfig.pages.about.title}
-      </h1>
+      {/*
+        页面名不再用大标题重复 —— 顶栏导航已经高亮「关于」。
+        留一个 sr-only 的 h1 只是给屏幕阅读器和文档大纲用，视觉上不显示。
+      */}
+      <h1 className="sr-only">{siteConfig.pages.about.title}</h1>
 
-      <div className="mt-8 space-y-4">
+      <div className="space-y-4">
         <p>{text.lead}</p>
         {text.paragraphs.map((paragraph) => (
           <p key={paragraph} className="text-muted-foreground">
