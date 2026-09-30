@@ -39,7 +39,15 @@ text: {                    // 页面文案，按页面分组
     contact: { title: "找我" },
   },
   about: { description: "{title} {name}", lead: "…", paragraphs: ["…"] },
-  section: { … },          // 分区列表页的说明 / 空状态 / 出错提示
+  section: {               // 分区列表页
+    description: "{name} 的{title}",
+    hint: "来自 GitHub Issues —— 打了 {label} 标签的内容会出现在这里。",
+    empty: {               // 没有内容时渲染空状态（shadcn 的 Empty 组件）
+      description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
+      action: "去 GitHub 写一条",   // 跳到新建 issue，标签已预填
+    },
+    error: "暂时读不到内容：{error}",   // 读取失败时也用 Empty 渲染
+  },
   entry: { … },            // 内容详情页的文案
   footer: { copyright: "© {year} {name}" },
   links: { github: "GitHub", email: "邮箱", source: "源码" },  // 推导链接的显示名
@@ -55,12 +63,13 @@ text: {                    // 页面文案，按页面分组
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
 - 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
 - 「关于」页正文按段配置：`lead` 是首段（正常字色），`paragraphs` 是后续段落（浅色），可增删。
+- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)）：图标 + `text.section.empty` 的说明，加一个链接按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导）。空状态不带大标题，也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。有内容时上方才显示 `hint`，避免同一句话说两遍。
 
 ### 去重规则
 
 同一个**事实**只写一次，其他地方一律引用或推导：
 
-- **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、仓库地址（`repoUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
+- **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、仓库地址（`repoUrl()`）、新建 issue（`newIssueUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
 - **名字不重抄**：页面名字写在 `pages` / `sections` 里，别处的文案要引用就写占位符（如关于页 description 的 `{title}`）。
 - **值恰好相同 ≠ 同一个事实**：`author.name`（显示名）与 `github.user`（GitHub 用户名）当前都是 `liwenka1`，但将来会各自变化（比如显示名改成中文名），所以故意分开配置，不要合并。
 - `lang` / `timeZone` 也同时供日期格式化使用（见 [`src/lib/format.ts`](src/lib/format.ts)），改一处全站生效。
@@ -79,6 +88,8 @@ text: {                    // 页面文案，按页面分组
 | `/tag/<label>` | 分区列表 |
 | `/entry/<编号>` | 内容详情 |
 | `/about` | 关于 |
+
+> 页面名由顶栏导航的高亮承担，页面里不再重复一个大标题。为了屏幕阅读器和文档大纲，每个页面仍保留一个 `sr-only` 的 `<h1>`（视觉上不显示）。内容详情页的 `<h1>` 是 issue 自己的标题，不属于重复，保留显示。
 
 ### 环境变量
 
