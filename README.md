@@ -6,21 +6,53 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 站点内容直接来自本仓库的 **GitHub Issues**，不需要数据库或后台。
 
-### 配置分区
+### 站点配置
 
-导航结构是 **首页 + 分区 + 关于**，分区在 [`src/config/site.ts`](src/config/site.ts) 里配置：
+站点的**所有信息与文案**都集中在 [`src/config/site.ts`](src/config/site.ts)，组件里不写死任何一句话 —— 改站名、改口号、改措辞都只动这一个文件。
 
 ```ts
+name: "speak-mind",        // 顶栏站名 / 页脚版权 / <title> 后缀
+lang: "zh-CN",             // <html lang>
+description: "…",          // 首页的 meta description
+author: {
+  name: "liwenka1",        // 首页自我介绍里的名字（会加粗显示）
+  email: "",               // 填了就自动出现在首页「找我」与页脚
+  links: [{ label: "GitHub", href: "https://github.com/liwenka1" }],
+},
+repo: { owner: "liwenka1", name: "speak-mind" },  // 内容仓库，页脚「源码」链接由它推导
+pages: {
+  home: { href: "/", title: "首页" },
+  about: { href: "/about", title: "关于" },
+},
 sections: [
   { title: "日记", label: "diary" },
   { title: "三言两语", label: "note" },
   { title: "随笔", label: "essay" },
 ],
+text: {                    // 页面文案，按页面分组
+  home: {
+    greeting: { before: "Hey! 我是 ", after: "，一个喜欢把想法随手记下来的人。" },
+    intro: "…",
+    doing: { title: "在做", items: ["…", "…"] },
+    sections: { title: "分区", hint: " —— 打上 {label} 标签的 issue" },
+    contact: { title: "找我" },
+  },
+  about: { description: "关于 {name}", lead: "…", paragraphs: ["…"] },
+  section: { … },          // 分区列表页的说明 / 空状态 / 出错提示
+  entry: { … },            // 内容详情页的文案
+  footer: { copyright: "© {year} {name}", source: "源码" },
+  titleTemplate: "%s · {name}",
+  theme: { … }, common: { … },
+},
 ```
 
-- `title` 是导航上显示的名字，`label` 是对应的 GitHub issue 标签。
-- 增删条目、改名字、换标签都只改这里，导航和页面会自动跟着变（数量不限）。
+文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{label}` 分区标签、`{title}` 分区名、`{year}` 年份、`{error}` 错误信息。占位符既能渲染成带样式的元素（比如分区页里的 `{label}` 会显示成 `code` 样式），也能用在 `<title>` 这种纯文本里；**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
+
+- 导航结构是 **首页 + 分区 + 关于**：首尾两项来自 `pages`，中间的分区来自 `sections`。
+- `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
+- 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
+- 「关于」页正文按段配置：`lead` 是首段（正常字色），`paragraphs` 是后续段落（浅色），可增删。
 
 ### 写内容
 
