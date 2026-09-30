@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeftIcon } from "lucide-react";
 import { getEntry, getEntriesByLabels, type Entry } from "@/lib/github";
 import { formatDate } from "@/lib/format";
 import { Markdown } from "@/components/entry/markdown";
@@ -70,7 +71,10 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       {errorMessage ? (
         <>
-          <BackHome />
+          <BackLink
+            href={siteConfig.pages.home.href}
+            label={siteConfig.pages.home.title}
+          />
           <p className="mt-10 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             {fill(siteConfig.text.entry.error, { error: errorMessage })}
           </p>
@@ -79,19 +83,20 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
         <article>
           <header>
             {sections.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 {sections.map((section) => (
-                  <Link
+                  <BackLink
                     key={section.label}
                     href={sectionPath(section.label)}
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {section.title}
-                  </Link>
+                    label={section.title}
+                  />
                 ))}
               </div>
             ) : (
-              <BackHome />
+              <BackLink
+                href={siteConfig.pages.home.href}
+                label={siteConfig.pages.home.title}
+              />
             )}
 
             <h1 className="mt-6 text-2xl font-semibold tracking-tight">
@@ -129,13 +134,20 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
   );
 }
 
-function BackHome() {
+/**
+ * 返回入口：回到这条内容所属的分区，或回到首页。
+ *
+ * 图标在文字前面，视觉上就是「退回」；lucide 图标自带 aria-hidden，
+ * 所以读屏只会念「日记」/「首页」。
+ */
+function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
-      href={siteConfig.pages.home.href}
-      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+      href={href}
+      className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
-      ← {siteConfig.pages.home.title}
+      <ArrowLeftIcon className="size-4" />
+      {label}
     </Link>
   );
 }
