@@ -96,8 +96,50 @@ text: {                    // 页面文案，按页面分组
 | 变量 | 说明 |
 | --- | --- |
 | `GITHUB_TOKEN` | 可选；GitHub 匿名接口限流 60 次/小时，配只读 token 可提升到 5000 次/小时 |
+| `REVALIDATE_SECONDS` | 可选；内容缓存时长（秒），默认 `3600`。本地调试设 `1` 可做到「写完刷新就能看到」 |
 
-> `GITHUB_TOKEN` 仅在服务端读取，切勿加 `NEXT_PUBLIC_` 前缀。站点名、仓库与分区都写在 `src/config/site.ts` 里，不放环境变量。
+> 这两个变量都**仅在服务端读取**，切勿加 `NEXT_PUBLIC_` 前缀。站点名、仓库与分区属于站点信息，写在 `src/config/site.ts` 里 —— 环境变量只放**部署相关的密钥与策略**。
+>
+> **缓存其实有两层**，`REVALIDATE_SECONDS` 只管第一层：
+>
+> 1. **数据缓存**：GitHub 响应的缓存时长，由 `REVALIDATE_SECONDS` 控制（本地用 `.env.local` 覆盖）。
+> 2. **页面缓存**：`src/app/tag/[label]/page.tsx` 与 `src/app/entry/[number]/page.tsx` 里的 `export const revalidate = 3600`。Next 要求这里是字面量（要静态分析），所以它读不了环境变量 —— 调整线上更新策略时，这两处要跟 `REVALIDATE_SECONDS` 一起改。
+
+### 内容更新后秒级刷新（可选）
+
+默认只靠 `REVALIDATE_SECONDS` 定时过期，最长要等一个 TTL 才看得到更新。配上 GitHub Webhook 就能做到**发布即刷新**，平时零轮询开销：
+
+1. 生成本地/线上各自的 secret：`openssl rand -hex 32`
+2. 在部署环境里配上它（Vercel → Settings → Environment Variables）：`GITHUB_WEBHOOK_SECRET=<刚生成的值>`
+3. 仓库 → Settings → Webhooks → Add webhook：
+   - **Payload URL**：`https://<你的域名>/api/revalidate`
+   - **Content type**：`application/json`
+   - **Secret**：与第 2 步**完全一致**
+   - **Which events**：只勾 **Issues**
+4. GitHub 会先发一个 `ping`，接口返回 `{"ok":true}` 就算接通了。
+
+之后 issue 的**新建 / 修改 / 删除 / 关闭 / 重开 / 打标签 / 取消标签**都会立刻刷新；其他事件（push、assigned、评论…）会被忽略。不配这个 webhook 也完全能用，只是更新延迟由 TTL 决定。
+
+**接口防护**（实现见 [`src/app/api/revalidate/route.ts`](src/app/api/revalidate/route.ts)）：
+
+- 只接受 POST；必须带 `X-Hub-Signature-256`，用 secret 对**原始请求体**做 HMAC-SHA256 并**常量时间比较** —— 没有 secret 的人无法触发刷新，所以不需要额外的限流。
+- **没配 secret 就直接 500**（fail closed），绝不会「跳过校验」裸奔；站点其余功能不受影响。
+- 签名通过之后才判断事件类型与仓库，只认本仓库的 `issues` 事件。
+- 认证失败一律同一个 401，不回显 payload 或错误细节。
+
+本地 dev 收不到 webhook（除非开隧道），日常仍用 `.env.local` 里的 `REVALIDATE_SECONDS=1`。想单独测这个接口，自己签一个 payload：
+
+```bash
+SECRET=...    # 与 .env.local 里的 GITHUB_WEBHOOK_SECRET 一致
+BODY='{"action":"opened","repository":{"full_name":"liwenka1/speak-mind"}}'
+SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')"
+
+curl -i -X POST http://localhost:3000/api/revalidate \
+  -H "X-GitHub-Event: issues" \
+  -H "X-Hub-Signature-256: $SIG" \
+  --data "$BODY"
+# 200 = 通过；把签名改一个字符再试 → 401
+```
 
 ### 部署到 Vercel
 

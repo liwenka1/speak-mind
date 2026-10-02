@@ -12,8 +12,30 @@ import { siteConfig } from "@/config/site";
 
 const GITHUB_API = "https://api.github.com";
 
-/** 内容缓存时长（秒）。GitHub 匿名接口限流为 60 次/小时，靠缓存兜底。 */
-export const REVALIDATE_SECONDS = 3600;
+/** 内容缓存时长的默认值（秒）：1 小时。 */
+const DEFAULT_REVALIDATE_SECONDS = 3600;
+
+/**
+ * 内容缓存时长（秒）。
+ *
+ * 默认 1 小时 —— GitHub 匿名接口限流 60 次/小时，靠缓存兜底；配了 PAT 后限额
+ * 是 5000 次/小时，可以调小以缩短"发布 → 页面可见"的延迟。
+ *
+ * 本地调试在 `.env.local` 里写 `REVALIDATE_SECONDS=1` 即可，不用改代码。
+ * 注意这里只管**数据缓存**；页面级缓存是另外两个字面量（见 rewrite 说明）。
+ */
+function resolveRevalidateSeconds(): number {
+  const raw = process.env.REVALIDATE_SECONDS?.trim();
+  if (!raw) return DEFAULT_REVALIDATE_SECONDS;
+
+  const seconds = Number(raw);
+  // 填了非法值就退回默认，别把 NaN 传给 Next
+  return Number.isFinite(seconds) && seconds >= 0
+    ? seconds
+    : DEFAULT_REVALIDATE_SECONDS;
+}
+
+export const REVALIDATE_SECONDS = resolveRevalidateSeconds();
 
 /** 单次最多拉取多少条。 */
 const PAGE_SIZE = 50;
