@@ -2,9 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
-import { getEntry, getEntriesByLabels, type Entry } from "@/lib/github";
+import {
+  getComments,
+  getEntry,
+  getEntriesByLabels,
+  type Comment,
+  type Entry,
+} from "@/lib/github";
 import { formatDate } from "@/lib/format";
 import { Markdown } from "@/components/entry/markdown";
+import { CommentList } from "@/components/entry/comment-list";
 import { sectionPath, siteConfig } from "@/config/site";
 import { fill } from "@/lib/template";
 
@@ -45,6 +52,8 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
   const id = Number(number);
   if (!Number.isInteger(id) || id <= 0) notFound();
 
+  const text = siteConfig.text.entry;
+
   let entry: Entry | null = null;
   let errorMessage: string | null = null;
 
@@ -59,6 +68,25 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
 
   // 接口明确 404（issue 不存在），进入 Next 的 404 页
   if (!entry && !errorMessage) notFound();
+
+  /*
+    评论是增值内容，所以单独 try/catch：拉不到也不该连正文都看不成。
+    `commentCount` 为 0 时直接跳过请求 —— 它和 issue 走同一个缓存 tag、一起失效，
+    所以「数出来是 0」就是真的没有评论，没必要再多打一次接口。
+  */
+  let comments: Comment[] = [];
+  let commentsError: string | null = null;
+
+  if (entry && entry.commentCount > 0) {
+    try {
+      comments = await getComments(entry.id);
+    } catch (error) {
+      commentsError =
+        error instanceof Error
+          ? error.message
+          : siteConfig.text.common.unknownError;
+    }
+  }
 
   // 该内容所属的分区（可能有多个），用作返回入口
   const sections = entry
@@ -76,7 +104,7 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             label={siteConfig.pages.home.title}
           />
           <p className="mt-10 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-            {fill(siteConfig.text.entry.error, { error: errorMessage })}
+            {fill(text.error, { error: errorMessage })}
           </p>
         </>
       ) : entry ? (
@@ -114,20 +142,43 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             {entry.body ? (
               <Markdown content={entry.body} />
             ) : (
-              <p className="text-muted-foreground">
-                {siteConfig.text.entry.emptyBody}
-              </p>
+              <p className="text-muted-foreground">{text.emptyBody}</p>
             )}
           </div>
 
-          <a
-            href={entry.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-12 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {siteConfig.text.entry.viewOnGitHub}
-          </a>
+          {/* 评论区：站内只展示，不能在这里发 —— 底部留一个入口回 GitHub */}
+          <section className="mt-16 border-t border-border pt-8">
+            <h2 className="text-sm font-medium text-muted-foreground">
+              {comments.length > 0
+                ? fill(text.comments.title, { count: comments.length })
+                : text.comments.titleEmpty}
+            </h2>
+
+            {commentsError ? (
+              <p className="mt-4 text-sm text-destructive">
+                {fill(text.comments.error, { error: commentsError })}
+              </p>
+            ) : comments.length > 0 ? (
+              <CommentList comments={comments} />
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">
+                {text.comments.empty}
+              </p>
+            )}
+
+            {/*
+              「看原文」和「去评论」是同一个地址，所以只有这一条链接 ——
+              不让同一个地址在页面上出现两次。
+            */}
+            <a
+              href={entry.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-10 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {text.comments.join}
+            </a>
+          </section>
         </article>
       ) : null}
     </main>

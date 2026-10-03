@@ -167,8 +167,22 @@ type SiteConfig = {
       error: string;
       /** 这条内容没有正文时 */
       emptyBody: string;
-      /** 跳回 GitHub 原文的链接文案 */
-      viewOnGitHub: string;
+      /**
+       * 评论区。评论在站内**只读展示** —— 不在这里发评论，
+       * 想发言就点 `join` 去对应的 issue。
+       */
+      comments: {
+        /** 有评论时的标题；`{count}` 是评论条数 */
+        title: string;
+        /** 没有评论时的标题（不带数量，免得出现「评论（0）」） */
+        titleEmpty: string;
+        /** 有评论、但评论读取失败时；`{error}` 是具体错误 */
+        error: string;
+        /** 一条评论都没有时 */
+        empty: string;
+        /** 底部入口：去 GitHub 看评论 / 发言（和「看原文」是同一个地址） */
+        join: string;
+      };
     };
 
     /** 页脚 */
@@ -277,7 +291,13 @@ export const siteConfig: SiteConfig = {
     entry: {
       error: "暂时读不到这篇内容：{error}",
       emptyBody: "（无正文）",
-      viewOnGitHub: "在 GitHub 查看 →",
+      comments: {
+        title: "评论（{count}）",
+        titleEmpty: "评论",
+        error: "读不到评论：{error}",
+        empty: "还没有评论。",
+        join: "去 GitHub 参与讨论 →",
+      },
     },
 
     footer: {

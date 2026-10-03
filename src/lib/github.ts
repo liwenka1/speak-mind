@@ -51,6 +51,32 @@ export type Entry = {
   url: string;
   /** 该 issue 的标签名列表 */
   labels: string[];
+  /**
+   * 评论条数 —— GitHub 的 issue 对象自带这个数字，**不需要**再调 comments 接口。
+   *
+   * 本站只做展示：评论不在站内渲染，只用它决定底部入口的文案（有 / 没有评论）。
+   */
+  commentCount: number;
+};
+
+/**
+ * issue 下的一条评论。
+ *
+ * 本站**只读展示**评论 —— 不在站内发评论，想发言去 GitHub。
+ */
+export type Comment = {
+  /** 评论 id，用作列表的稳定 key */
+  id: number;
+  /** 评论者用户名；账号已注销时 GitHub 自己的界面显示为 ghost */
+  author: string;
+  /** 评论者头像地址；拿不到时是空串，UI 里就不渲染头像 */
+  avatarUrl: string;
+  /** GFM 正文 */
+  body: string;
+  /** ISO 时间字符串（UTC） */
+  createdAt: string;
+  /** 这条评论在 GitHub 上的地址 */
+  url: string;
 };
 
 /** GitHub issues 接口返回的字段子集（该接口也会返回 PR，故有 pull_request 字段） */
@@ -62,6 +88,17 @@ type GitHubIssue = {
   html_url: string;
   labels: Array<string | { name?: string | null }>;
   pull_request?: unknown;
+  /** 评论条数：issue 对象自带，省掉一次 comments 接口请求 */
+  comments?: number;
+};
+
+/** GitHub comments 接口返回的字段子集 */
+type GitHubComment = {
+  id: number;
+  body: string | null;
+  created_at: string;
+  html_url: string;
+  user: { login?: string | null; avatar_url?: string | null } | null;
 };
 
 function buildHeaders(): Record<string, string> {
@@ -96,6 +133,7 @@ function toEntry(issue: GitHubIssue): Entry {
     labels: issue.labels
       .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
       .filter(Boolean),
+    commentCount: issue.comments ?? 0,
   };
 }
 
@@ -163,4 +201,52 @@ export async function getEntry(number: number): Promise<Entry | null> {
   if (issue.pull_request) return null;
 
   return toEntry(issue);
+}
+
+function toComment(comment: GitHubComment): Comment {
+  return {
+    id: comment.id,
+    // 账号注销后 user 是 null，GitHub 自己的界面显示为 ghost，这里保持一致
+    author: comment.user?.login || "ghost",
+    avatarUrl: comment.user?.avatar_url ?? "",
+    body: comment.body ?? "",
+    createdAt: comment.created_at,
+    url: comment.html_url,
+  };
+}
+
+/** 评论接口每页最多 100 条 */
+const COMMENTS_PAGE_SIZE = 100;
+
+/** 最多翻多少页 —— 个人站点远到不了，纯粹是给循环一个上界 */
+const MAX_COMMENT_PAGES = 10;
+
+/**
+ * 拉取某条 issue 下的全部评论，按时间正序（旧 → 新，GitHub 的默认顺序）。
+ *
+ * 评论只**展示**，这个函数只读不写 —— 想发言得去 GitHub。
+ * 超过一页会一直翻到取完（上界见 `MAX_COMMENT_PAGES`）。
+ */
+export async function getComments(number: number): Promise<Comment[]> {
+  const comments: Comment[] = [];
+
+  for (let page = 1; page <= MAX_COMMENT_PAGES; page += 1) {
+    const url = new URL(`${issuesEndpoint()}/${number}/comments`);
+    url.searchParams.set("per_page", String(COMMENTS_PAGE_SIZE));
+    url.searchParams.set("page", String(page));
+
+    const res = await fetch(url, { headers: buildHeaders(), ...cacheConfig });
+
+    if (!res.ok) {
+      throw new Error(`GitHub 接口请求失败：${res.status} ${res.statusText}`);
+    }
+
+    const batch = (await res.json()) as GitHubComment[];
+    comments.push(...batch.map(toComment));
+
+    // 不满一页说明已经到底
+    if (batch.length < COMMENTS_PAGE_SIZE) break;
+  }
+
+  return comments;
 }

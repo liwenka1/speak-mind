@@ -13,8 +13,8 @@ import { siteConfig } from "@/config/site";
  *    校验通过前不解析任何内容。
  * 3. **secret 没配就直接 500**（fail closed）。绝不写成「没配就跳过校验」——
  *    那是把刷新接口暴露给全网。
- * 4. **签名通过后**才看事件与仓库：只处理本仓库的 `issues` 事件，且只处理
- *    会改变展示内容的 action；其余一律「收到但不做事」。
+ * 4. **签名通过后**才看事件与仓库：只处理本仓库的 `issues` 与 `issue_comment`
+ *    事件，且只处理会改变展示内容的 action；其余一律「收到但不做事」。
  * 5. **认证失败一律同一个 401**，不区分「没带签名」和「签名不对」，不给探测者反馈；
  *    也不回显 payload 或错误细节。
  *
@@ -31,16 +31,24 @@ import { siteConfig } from "@/config/site";
 /** 与 `src/lib/github.ts` 里 fetch 的 tags 保持一致 */
 const REVALIDATE_TAG = "entries";
 
-/** 只有这些 action 会改变页面上要展示的内容 */
-const CONTENT_ACTIONS = new Set([
-  "opened",
-  "edited",
-  "deleted",
-  "closed",
-  "reopened",
-  "labeled",
-  "unlabeled",
-]);
+/**
+ * 会改变页面上要展示内容的事件，以及各事件里真正有影响的 action。
+ *
+ * - `issues`：内容本身（标题 / 正文 / 标签 / 开关状态）
+ * - `issue_comment`：评论 —— 详情页要展示评论列表，所以新增 / 修改 / 删除都得刷新
+ */
+const CONTENT_ACTIONS: Record<string, ReadonlySet<string>> = {
+  issues: new Set([
+    "opened",
+    "edited",
+    "deleted",
+    "closed",
+    "reopened",
+    "labeled",
+    "unlabeled",
+  ]),
+  issue_comment: new Set(["created", "edited", "deleted"]),
+};
 
 /** 用 node:crypto，因此必须跑在 Node.js 运行时（不是 Edge） */
 export const runtime = "nodejs";
@@ -89,7 +97,12 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // —— 以下内容都已通过签名校验，可以安全解析 ——
-  let payload: { repository?: { full_name?: string }; action?: string };
+  let payload: {
+    repository?: { full_name?: string };
+    action?: string;
+    /** 只有 issue_comment 事件带这个字段：用来区分评论在 issue 上还是在 PR 上 */
+    issue?: { pull_request?: unknown };
+  };
   try {
     payload = JSON.parse(rawBody);
   } catch {
@@ -103,7 +116,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ ok: true, event });
   }
 
-  if (event !== "issues") {
+  const actions = event ? CONTENT_ACTIONS[event] : undefined;
+  if (!actions) {
     return Response.json({ revalidated: false, reason: `ignored event: ${event}` });
   }
 
@@ -112,10 +126,18 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ revalidated: false, reason: "not our repository" });
   }
 
-  if (!payload.action || !CONTENT_ACTIONS.has(payload.action)) {
+  if (!payload.action || !actions.has(payload.action)) {
     return Response.json({
       revalidated: false,
       reason: `ignored action: ${payload.action}`,
+    });
+  }
+
+  // issue_comment 对 PR 也会触发，而 PR 不出现在站内 —— 没必要为它重建整站页面
+  if (event === "issue_comment" && payload.issue?.pull_request) {
+    return Response.json({
+      revalidated: false,
+      reason: "comment on a pull request",
     });
   }
 

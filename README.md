@@ -80,6 +80,14 @@ text: {                    // 页面文案，按页面分组
 
 在 GitHub 上新建 issue → 写好标题和正文 → 打上对应分区的标签（标签名第一次用时可直接新建）。页面缓存 1 小时，稍后刷新即可看到。
 
+### 评论
+
+评论会**只读展示**在内容详情页底部（`/entry/<编号>`）。站点不提供发表评论的能力 —— 想参与就点评论区底部的「去 GitHub 参与讨论」，回到对应的 issue。
+
+- 评论条数直接来自 GitHub 的 issue 对象；**只有确实有评论时**才去请求评论列表。正文与评论分别降级 —— 评论读不到不影响读正文。
+- 评论的 Markdown 与正文共用同一套渲染（GFM），**不启用 raw HTML**。
+- 头像用原生 `<img>` 渲染，不走 `next/image`：后者的域名白名单是构建期配置，而头像地址是运行时数据，没配上的域会让整个页面报错 —— 不值得为一个装饰性头像连累正文。
+
 ### 路由
 
 | 路径 | 说明 |
@@ -115,10 +123,10 @@ text: {                    // 页面文案，按页面分组
    - **Payload URL**：`https://<你的域名>/api/revalidate`
    - **Content type**：`application/json`
    - **Secret**：与第 2 步**完全一致**
-   - **Which events**：只勾 **Issues**
+   - **Which events**：勾 **Issues** 与 **Issue comments**
 4. GitHub 会先发一个 `ping`，接口返回 `{"ok":true}` 就算接通了。
 
-之后 issue 的**新建 / 修改 / 删除 / 关闭 / 重开 / 打标签 / 取消标签**都会立刻刷新；其他事件（push、assigned、评论…）会被忽略。不配这个 webhook 也完全能用，只是更新延迟由 TTL 决定。
+之后 issue 的**新建 / 修改 / 删除 / 关闭 / 重开 / 打标签 / 取消标签**，以及评论的**新增 / 修改 / 删除**都会立刻刷新；其他事件（push、assigned…）会被忽略。不配这个 webhook 也完全能用，只是更新延迟由 TTL 决定。
 
 **接口防护**（实现见 [`src/app/api/revalidate/route.ts`](src/app/api/revalidate/route.ts)）：
 
@@ -145,7 +153,7 @@ curl -i -X POST http://localhost:3000/api/revalidate \
 
 1. 把仓库导入 Vercel 即可，无需额外构建配置。
 2. 在 **Settings → Environment Variables** 中添加 `GITHUB_TOKEN`（只读 PAT）。
-   - **强烈建议配置**：Vercel 的构建与函数使用**共享出口 IP**，GitHub 匿名接口 60 次/小时的额度很容易被其它用户耗尽，会导致构建失败或页面报错；配了 token 则是 5000 次/小时（按你的 token 计）。
+   - **强烈建议配置**：Vercel 的构建与函数使用**共享出口 IP**，GitHub 匿名接口 60 次/小时的额度很容易被其它用户耗尽，会导致构建失败或页面报错；配了 token 则是 5000 次/小时（按你的 token 计）。有评论的内容详情页会多一次请求（正文 + 评论各一个），`GITHUB_TOKEN` 就更值得配了。
 
 ## Getting Started
 
