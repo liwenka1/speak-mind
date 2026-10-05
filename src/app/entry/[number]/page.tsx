@@ -12,7 +12,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { Markdown } from "@/components/entry/markdown";
 import { CommentList } from "@/components/entry/comment-list";
-import { sectionPath, siteConfig } from "@/config/site";
+import { sectionPath, sectionsOf, siteConfig } from "@/config/site";
 import { fill } from "@/lib/template";
 
 /** 与数据层一致的缓存时长；字面量，便于 Next.js 静态分析。 */
@@ -27,7 +27,15 @@ export async function generateMetadata(
 
   try {
     const entry = await getEntry(id);
-    return entry ? { title: entry.title } : {};
+    if (!entry) return {};
+
+    /*
+      判据必须和页面组件一致：没有分区标签的内容不该展示，那么它也不该把标题
+      写进 <head>。metadata 与页面是分别解析的，只在页面里拦会漏掉标题。
+    */
+    if (sectionsOf(entry).length === 0) return {};
+
+    return { title: entry.title };
   } catch {
     return {};
   }
@@ -69,6 +77,21 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
   // 接口明确 404（issue 不存在），进入 Next 的 404 页
   if (!entry && !errorMessage) notFound();
 
+  // 这条内容属于哪些分区（可能有多个）；既用作返回入口，也是「能不能展示」的判据
+  const sections = entry ? sectionsOf(entry) : [];
+
+  /*
+    一个分区标签都没命中的 issue 一律不展示。
+
+    否则详情页就是仓库里任意 issue 的公开只读镜像：issue 编号从 1 连续递增，
+    一个循环就能把所有 issue 读一遍 —— 包括还没打标签、本来没打算公开的草稿。
+    也就是说，详情页的入口应该是**标签**，不是编号。
+
+    代价：「不属于任何分区」的内容不能看了。以前这类内容会退化成「回到首页」的页面，
+    现在直接 404 —— 想发就得先给它一个分区标签。
+  */
+  if (entry && sections.length === 0) notFound();
+
   /*
     评论是增值内容，所以单独 try/catch：拉不到也不该连正文都看不成。
     `commentCount` 为 0 时直接跳过请求 —— 它和 issue 走同一个缓存 tag、一起失效，
@@ -88,13 +111,6 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
     }
   }
 
-  // 该内容所属的分区（可能有多个），用作返回入口
-  const sections = entry
-    ? siteConfig.sections.filter((section) =>
-        entry.labels.includes(section.label),
-      )
-    : [];
-
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       {errorMessage ? (
@@ -110,22 +126,15 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
       ) : entry ? (
         <article>
           <header>
-            {sections.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                {sections.map((section) => (
-                  <BackLink
-                    key={section.label}
-                    href={sectionPath(section.label)}
-                    label={section.title}
-                  />
-                ))}
-              </div>
-            ) : (
-              <BackLink
-                href={siteConfig.pages.home.href}
-                label={siteConfig.pages.home.title}
-              />
-            )}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {sections.map((section) => (
+                <BackLink
+                  key={section.label}
+                  href={sectionPath(section.label)}
+                  label={section.title}
+                />
+              ))}
+            </div>
 
             <h1 className="mt-6 text-2xl font-semibold tracking-tight">
               {entry.title}
@@ -186,10 +195,10 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
 }
 
 /**
- * 返回入口：回到这条内容所属的分区，或回到首页。
+ * 返回入口：回到这条内容所属的分区（错误页里则回首页）。
  *
  * 图标在文字前面，视觉上就是「退回」；lucide 图标自带 aria-hidden，
- * 所以读屏只会念「日记」/「首页」。
+ * 所以读屏只会念分区名 / 「首页」。
  */
 function BackLink({ href, label }: { href: string; label: string }) {
   return (

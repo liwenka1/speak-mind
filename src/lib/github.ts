@@ -139,7 +139,8 @@ function toEntry(issue: GitHubIssue): Entry {
 
 async function listIssues(label: string): Promise<Entry[]> {
   const url = new URL(issuesEndpoint());
-  url.searchParams.set("state", "all");
+  // 只收 open：关闭 issue 就等于「从列表下架」（详情页仍能读到，见 getEntry 的说明）
+  url.searchParams.set("state", "open");
   url.searchParams.set("labels", label);
   url.searchParams.set("sort", "created");
   url.searchParams.set("direction", "desc");
@@ -185,7 +186,12 @@ export async function getEntriesByLabels(
   );
 }
 
-/** 按编号拉取单条内容；不存在（404）或实为 PR 时返回 null。 */
+/**
+ * 按编号拉取单条内容；不存在（404）或实为 PR 时返回 null。
+ *
+ * **不看 state**：关闭的 issue 仍然取得到 —— 关闭只是把它从分区列表里摘掉，
+ * 已经发出去的链接不会断。要不要展示由调用方再判一次分区标签（见详情页）。
+ */
 export async function getEntry(number: number): Promise<Entry | null> {
   const res = await fetch(`${issuesEndpoint()}/${number}`, {
     headers: buildHeaders(),

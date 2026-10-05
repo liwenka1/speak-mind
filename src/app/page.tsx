@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { SiteLinkList } from "@/components/layout/site-links";
 import { authorLinks, sectionPath, siteConfig } from "@/config/site";
-import { fillNodes } from "@/lib/template";
 
 const linkClass =
   "underline underline-offset-4 decoration-border transition-colors hover:decoration-foreground";
@@ -11,7 +10,7 @@ const text = siteConfig.text.home;
 
 export default function Home() {
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16 text-[15px] leading-7">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       <section className="space-y-4">
         <p>
           {text.greeting.before}
@@ -42,9 +41,6 @@ export default function Home() {
               <Link href={sectionPath(section.label)} className={linkClass}>
                 {section.title}
               </Link>
-              <span className="text-muted-foreground">
-                {fillNodes(text.sections.hint, { label: section.label })}
-              </span>
             </li>
           ))}
         </ul>

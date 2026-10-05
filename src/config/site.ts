@@ -13,7 +13,7 @@
  * - URL 不是独立事实：GitHub 主页与仓库地址都由 `github` 拼出来（见 `githubUrl` / `repoUrl`），
  *   不要在配置里手写 `https://github.com/...`；
  * - 页面名字写在 `pages` / `sections` 里，文案要用时写 `{title}`，不要重抄一遍；
- * - 站名、年份、标签名、错误信息分别用 `{name}` `{year}` `{label}` `{error}` 占位符填入。
+ * - 站名、年份、错误信息分别用 `{name}` `{year}` `{error}` 占位符填入。
  * - 但「值恰好相同」不等于「同一个事实」：作者显示名（`author.name`）与 GitHub 用户名
  *   （`github.user`）当前都是 liwenka1，将来会各自变化（比如显示名改成中文名），
  *   所以**故意分开配置**，不要合并。
@@ -122,11 +122,9 @@ type SiteConfig = {
         title: string;
         items: string[];
       };
-      /** 「分区」区块；`hint` 里的 `{label}` 会渲染成 code 样式的标签名 */
+      /** 「分区」区块 */
       sections: {
         title: string;
-        /** 以空格开头，用来和上面的分区名隔开 */
-        hint: string;
       };
       /** 「找我」区块：链接来自 author.links / author.email */
       contact: {
@@ -148,12 +146,10 @@ type SiteConfig = {
     section: {
       /** 浏览器标签页上的描述；`{name}` 站名、`{title}` 分区名 */
       description: string;
-      /** 标题下的说明；`{label}` 渲染成 code 样式的标签名 */
-      hint: string;
       /** 该分区还没内容时的空状态（用 shadcn 的 Empty 组件渲染） */
       empty: {
-        /** 说明；`{label}` 渲染成 code 样式的标签名 */
-        description: string;
+        /** 空状态标题 */
+        title: string;
         /** 按钮文案：点进 GitHub 新建 issue，分区标签已预填 */
         action: string;
       };
@@ -263,7 +259,6 @@ export const siteConfig: SiteConfig = {
       },
       sections: {
         title: "分区",
-        hint: " —— 打上 {label} 标签的 issue",
       },
       contact: {
         title: "找我",
@@ -280,9 +275,8 @@ export const siteConfig: SiteConfig = {
 
     section: {
       description: "{name} 的{title}",
-      hint: "来自 GitHub Issues —— 打了 {label} 标签的内容会出现在这里。",
       empty: {
-        description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
+        title: "还没有内容",
         action: "去 GitHub 写一条",
       },
       error: "暂时读不到内容：{error}",
@@ -371,4 +365,21 @@ export function entryPath(id: number): string {
 /** 按 label 查分区配置 */
 export function findSection(label: string): SiteSection | undefined {
   return siteConfig.sections.find((section) => section.label === label);
+}
+
+/**
+ * 一条内容命中了哪些已配置的分区。
+ *
+ * 标签名按**大小写不敏感**比较：GitHub 的 `labels=` 过滤是大小写不敏感的
+ * （标签名本身也不允许只差大小写地重复），而详情页以前用的是严格相等 ——
+ * 配置写 `diary`、GitHub 上实际是 `Diary` 时，列表能出内容、详情页却会 404。
+ *
+ * 参数用结构化类型而不是 `Entry`，避免 config 反向依赖数据层。
+ */
+export function sectionsOf(entry: { labels: string[] }): SiteSection[] {
+  const labels = new Set(entry.labels.map((label) => label.toLowerCase()));
+
+  return siteConfig.sections.filter((section) =>
+    labels.has(section.label.toLowerCase()),
+  );
 }
