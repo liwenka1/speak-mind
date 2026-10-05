@@ -35,15 +35,14 @@ text: {                    // 页面文案，按页面分组
     greeting: { before: "Hey! 我是 ", after: "，一个喜欢把想法随手记下来的人。" },
     intro: "…",
     doing: { title: "在做", items: ["…", "…"] },
-    sections: { title: "分区", hint: " —— 打上 {label} 标签的 issue" },
+    sections: { title: "分区" },
     contact: { title: "找我" },
   },
   about: { description: "{title} {name}", lead: "…", paragraphs: ["…"] },
   section: {               // 分区列表页
     description: "{name} 的{title}",
-    hint: "来自 GitHub Issues —— 打了 {label} 标签的内容会出现在这里。",
     empty: {               // 没有内容时渲染空状态（shadcn 的 Empty 组件）
-      description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
+      title: "还没有内容",
       action: "去 GitHub 写一条",   // 跳到新建 issue，标签已预填
     },
     error: "暂时读不到内容：{error}",   // 读取失败时也用 Empty 渲染
@@ -56,14 +55,14 @@ text: {                    // 页面文案，按页面分组
 },
 ```
 
-文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{label}` 分区标签、`{title}` 分区名、`{year}` 年份、`{error}` 错误信息。占位符既能渲染成带样式的元素（比如分区页里的 `{label}` 会显示成 `code` 样式），也能用在 `<title>` 这种纯文本里；**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
+文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{title}` 分区名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
 
 - 导航结构是 **首页 + 分区 + 关于**：首尾两项来自 `pages`，中间的分区来自 `sections`。
 - `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
 - 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
 - 「关于」页正文按段配置：`lead` 是首段（正常字色），`paragraphs` 是后续段落（浅色），可增删。
-- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)）：图标 + `text.section.empty` 的说明，加一个链接按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导）。空状态不带大标题，也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。有内容时上方才显示 `hint`，避免同一句话说两遍。
+- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)）：图标 + `text.section.empty` 的标题（`EmptyTitle`），加一个按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导）。空状态不重复分区名、也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。
 
 ### 去重规则
 
@@ -79,6 +78,11 @@ text: {                    // 页面文案，按页面分组
 ### 写内容
 
 在 GitHub 上新建 issue → 写好标题和正文 → 打上对应分区的标签（标签名第一次用时可直接新建）。页面缓存 1 小时，稍后刷新即可看到。
+
+**标签就是「发布」开关：**
+
+- 没打标签的 issue 不会出现在任何地方 —— 详情页 `/entry/<编号>` 要求命中至少一个分区标签，否则页面 404，`generateMetadata` 也一并返回空、**不把标题写进 `<head>`**（Next 会把页面外壳连同 `<head>` 先发出去，再渲染 not-found，所以两头都得拦）。所以草稿在打上标签之前是不公开的（issue 编号从 1 连续递增，别指望「编号猜不到」能保密）。标签名按大小写不敏感比较，和 GitHub 的 `labels=` 过滤保持一致。
+- 关闭 issue 等于**从分区列表下架**，但已经发出去的详情页链接仍然打得开（`state=open` 只作用于列表）。要让一条内容彻底消失，删掉 issue 或**去掉它的分区标签**都行 —— 后者更轻，详情页会直接 404。
 
 ### 评论
 
@@ -98,6 +102,17 @@ text: {                    // 页面文案，按页面分组
 | `/about` | 关于 |
 
 > 页面名由顶栏导航的高亮承担，页面里不再重复一个大标题。为了屏幕阅读器和文档大纲，每个页面仍保留一个 `sr-only` 的 `<h1>`（视觉上不显示）。内容详情页的 `<h1>` 是 issue 自己的标题，不属于重复，保留显示。
+
+### 正文排版
+
+正文（issue 的 Markdown 与评论共用同一个渲染组件）交给 shadcn 的 [Typeset](https://ui.shadcn.com/docs/typeset)：
+
+- [`src/app/typeset.css`](src/app/typeset.css) 是从官方直链原样下载的，**不要改它** —— 升级就是重新下一份覆盖
+- 项目自己的调参放在 [`globals.css`](src/app/globals.css) 的 `.typeset-article` 预设里，三个值决定全部节奏：`--typeset-size`（16px）、`--typeset-leading`（1.8）、`--typeset-flow`（1.4em）。改这三个值就能整体调松紧，不必碰元素级样式
+- `--typeset-font-heading` 必须指回 `--font-heading-cjk`：Typeset 的 heading 规则在 `@layer components` 层，会盖掉 `@layer base` 里 `h1–h6` 那条含中文宋体兜底的栈
+- 圆角由 `--radius` 一个值按比例推导（见该变量上方的注释）：控件（按钮）用 `rounded-md`，面板与图标框用 `rounded-lg`
+
+> Typeset 不设最大宽度 —— 宽度由布局（`main` 的 `max-w-2xl`）拥有。
 
 ### 环境变量
 
@@ -173,7 +188,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-字体通过 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 加载：标题用 Playfair Display（衬线），正文用 Noto Sans，中文会自动回退到系统字体（宋体 / 黑体）。
+字体通过 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 加载：标题用 Playfair Display（衬线），正文用 Noto Sans，中文会自动回退到系统字体（宋体 / 黑体）。中文字体栈（`--font-heading-cjk`、`html` 的 `font-family`）都定义在 `globals.css` —— 注意 Tailwind 的 `font-sans` / `font-heading` / `font-mono` 工具类**只有拉丁字形**（`@theme inline` 内联的是 next/font 的表达式，不含中文兜底），所以带中文的元素要靠继承，或像 EmptyTitle 那样在 `globals.css` 里补栈。
 
 ## Learn More
 
