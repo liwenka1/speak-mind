@@ -49,7 +49,7 @@ export function CommentList({ comments }: { comments: Comment[] }) {
               </time>
             </div>
 
-            <div className="mt-2 text-[15px]">
+            <div className="mt-2">
               <Markdown content={comment.body} />
             </div>
           </div>

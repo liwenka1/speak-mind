@@ -16,7 +16,7 @@ export default function AboutPage() {
   const text = siteConfig.text.about;
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16 text-[15px] leading-7">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
       {/*
         页面名不再用大标题重复 —— 顶栏导航已经高亮「关于」。
         留一个 sr-only 的 h1 只是给屏幕阅读器和文档大纲用，视觉上不显示。

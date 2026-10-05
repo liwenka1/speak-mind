@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Markdown 正文排版：shadcn/typeset 官方文件（https://ui.shadcn.com/docs/typeset） */
+@import "./typeset.css";
 
 /* 用 class 控制暗色模式（配合 next-themes 写入 <html class="dark">），而非跟随系统媒体查询 */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -27,6 +29,16 @@
   --chart-3: oklch(0.438 0.017 39.3);
   --chart-4: oklch(0.367 0.016 35.7);
   --chart-5: oklch(0.268 0.011 36.5);
+  /*
+    全站圆角基准。`--radius-*` 全部由它按比例推导（见下面 @theme inline），
+    typeset 也用 `var(--radius)`，所以改这一个值就能整体缩放圆角。
+
+    当前用法：控件（按钮）用 `rounded-md`（0.8×），面板与图标框（空状态图标、
+    错误提示框、正文图片）用 `rounded-lg`（1×）。
+
+    `components/ui/dropdown-menu.tsx` 至今仍是 `rounded-none` —— 那个组件没有任何
+    页面引用，所以没跟着改；将来要用它，记得把其中的 `rounded-none` 一起换掉。
+  */
   --radius: 0.625rem;
   --sidebar: oklch(0.986 0.002 67.8);
   --sidebar-foreground: oklch(0.147 0.004 49.3);
@@ -118,99 +130,44 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* 日记 Markdown 正文的基础可读性样式（后期可替换为 @tailwindcss/typography） */
-.markdown-body {
-  line-height: 1.75;
-  word-break: break-word;
+/*
+  标题字体栈：拉丁走 Playfair Display（衬线），汉字回退到系统宋体。
+
+  只定义这一次，三处共用：下面 `@layer base` 里的 h1–h6、正文预设
+  `.typeset-article`、以及空状态的 EmptyTitle（见文件末尾那条 data-slot 规则）。
+
+  为什么必须显式带中文兜底：`--font-heading` 由 next/font 生成，只有 Playfair 的
+  拉丁字形；而 typeset 的 heading 规则在 `@layer components` 层、优先级高于 base
+  里的 h1–h6，会把它整条盖掉 —— 不显式带上兜底栈，中文标题就会掉到浏览器默认字体。
+*/
+:root {
+  --font-heading-cjk: var(--font-heading), "Songti SC", "SimSun",
+    "Noto Serif CJK SC", "Source Han Serif SC", serif;
 }
-.markdown-body > :first-child {
-  margin-top: 0;
-}
-.markdown-body > :last-child {
-  margin-bottom: 0;
-}
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3,
-.markdown-body h4 {
-  margin: 1.5em 0 0.5em;
-  font-weight: 600;
-  line-height: 1.3;
-}
-.markdown-body h1 {
-  font-size: 1.5em;
-}
-.markdown-body h2 {
-  font-size: 1.25em;
-}
-.markdown-body h3 {
-  font-size: 1.1em;
-}
-.markdown-body p,
-.markdown-body ul,
-.markdown-body ol,
-.markdown-body blockquote,
-.markdown-body pre,
-.markdown-body table {
-  margin: 1em 0;
-}
-.markdown-body a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  text-decoration-color: var(--muted-foreground);
-}
-.markdown-body a:hover {
-  text-decoration-color: var(--foreground);
-}
-.markdown-body ul,
-.markdown-body ol {
-  padding-left: 1.5em;
-}
-.markdown-body ul {
-  list-style: disc;
-}
-.markdown-body ol {
-  list-style: decimal;
-}
-.markdown-body blockquote {
-  padding-left: 1em;
-  border-left: 3px solid var(--border);
-  color: var(--muted-foreground);
-}
-.markdown-body code {
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--foreground) 7%, transparent);
-  font-size: 0.9em;
-}
-.markdown-body pre {
-  padding: 1em;
-  border-radius: 8px;
-  overflow-x: auto;
-  background: color-mix(in srgb, var(--foreground) 6%, transparent);
-}
-.markdown-body pre code {
-  padding: 0;
-  background: none;
-}
-.markdown-body img {
-  max-width: 100%;
-  height: auto;
-}
-.markdown-body hr {
-  margin: 2em 0;
-  border: none;
-  border-top: 1px solid var(--border);
-}
-.markdown-body table {
-  border-collapse: collapse;
-  width: 100%;
-}
-.markdown-body th,
-.markdown-body td {
-  border: 1px solid var(--border);
-  padding: 0.4em 0.6em;
+
+/*
+  日记正文的排版预设（配合 typeset.css 里的 `typeset` 类）。
+
+  三个值按中文调过：shadcn 的示例（15px / 1.75 / 1.25em）是照拉丁文给的，
+  汉字视觉上更"重"、也更需要行距，所以基准抬到 16px、行高放到 1.8、
+  块间距放宽到 1.4em。
+
+  颜色与等宽字体**故意不覆盖**：上游用的 `var(--color-*)` 与 `var(--font-mono)`
+  都是 Tailwind 的主题变量，而 Tailwind 会把「被 CSS 按名引用到的」主题变量输出
+  到 `@layer theme`（已用 @tailwindcss/postcss 编译确认：`--color-muted-foreground`、
+  `--color-border`、`--font-mono` 都有产出，解析结果与本项目 `:root` 里的真变量
+  一致）—— 再写一遍只是等价的冗余。
+*/
+.typeset-article {
+  /*
+    typeset 的 heading 规则在 `@layer components` 层，优先级高于 base 里的
+    h1–h6，会盖掉那条**含中文宋体兜底**的栈；而 `var(--font-heading)` 只有
+    Playfair 的拉丁字形。不指回 --font-heading-cjk，中文标题就会掉到浏览器默认字体。
+  */
+  --typeset-font-heading: var(--font-heading-cjk);
+  --typeset-size: 16px;
+  --typeset-leading: 1.8;
+  --typeset-flow: 1.4em;
 }
 
 @layer base {
@@ -219,6 +176,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* 中文正文的行高：Tailwind 默认的 1.5 对汉字偏紧 */
+    line-height: 1.75;
   }
   /* 正文：拉丁走 Noto Sans，汉字回退到系统黑体（苹方 / 微软雅黑 等） */
   html {
@@ -226,20 +185,32 @@
       var(--font-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
       "Noto Sans CJK SC", system-ui, sans-serif;
   }
-  /* 标题：拉丁走 Playfair Display（衬线），汉字回退到系统宋体 */
+  /* 标题字体栈见上面 :root 里的 --font-heading-cjk */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    font-family:
-      var(--font-heading), "Songti SC", "SimSun", "Noto Serif CJK SC",
-      "Source Han Serif SC", serif;
+    font-family: var(--font-heading-cjk);
   }
   /* Tailwind v4 默认把按钮光标设为 default，这里统一改回 pointer */
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+}
+
+/*
+  空状态的标题（`EmptyTitle`）用的是 `font-heading` 工具类 —— 它由 `@theme inline`
+  内联成 `var(--font-heading)`，只有拉丁字形，中文会掉到浏览器默认字体。
+  （EmptyTitle 渲染的是 <div>，吃不到 base 层里 h1–h6 那条栈。）
+
+  这条规则刻意不放进任何 @layer：Tailwind 的工具类在 `@layer utilities` 里，
+  而无层的普通声明优先级高于所有层，这样才能真正盖过 `font-heading`。
+  与组件的耦合点只有 `data-slot`（跟 button.tsx 里 `has-data-[icon=…]` 同一个套路），
+  所以不需要改 `components/ui/empty.tsx` 这个 vendored 文件。
+*/
+[data-slot="empty-title"] {
+  font-family: var(--font-heading-cjk);
 }
