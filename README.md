@@ -1,6 +1,6 @@
 # speak-mind
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+一个把 **GitHub Issues 当内容管理器**的个人站（Next.js + Tailwind CSS）。
 
 ## 内容（由 GitHub Issues 驱动）
 
@@ -175,18 +175,12 @@ curl -i -X POST http://localhost:3000/api/revalidate \
 2. 在 **Settings → Environment Variables** 中添加 `GITHUB_TOKEN`（只读 PAT）。
    - **强烈建议配置**：Vercel 的构建与函数使用**共享出口 IP**，GitHub 匿名接口 60 次/小时的额度很容易被其它用户耗尽，会导致构建失败或页面报错；配了 token 则是 5000 次/小时（按你的 token 计）。有评论的内容详情页会多一次请求（正文 + 评论各一个），`GITHUB_TOKEN` 就更值得配了。
 
-## Getting Started
-
-First, run the development server:
+## 本地开发
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
+
+打开 <http://localhost:3000> 即可（本项目用 pnpm，锁文件是 `pnpm-lock.yaml`）。
 
 字体通过 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 加载：标题用 Playfair Display（衬线），正文用 Noto Sans，中文会自动回退到系统字体（宋体 / 黑体）。中文字体栈（`--font-heading-cjk`、`html` 的 `font-family`）都定义在 `globals.css` —— 注意 Tailwind 的 `font-sans` / `font-heading` / `font-mono` 工具类**只有拉丁字形**（`@theme inline` 内联的是 next/font 的表达式，不含中文兜底），所以带中文的元素要靠继承，或像 EmptyTitle 那样在 `globals.css` 里补栈。

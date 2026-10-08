@@ -36,8 +36,8 @@
     当前用法：控件（按钮）用 `rounded-md`（0.8×），面板与图标框（空状态图标、
     错误提示框、正文图片）用 `rounded-lg`（1×）。
 
-    `components/ui/dropdown-menu.tsx` 至今仍是 `rounded-none` —— 那个组件没有任何
-    页面引用，所以没跟着改；将来要用它，记得把其中的 `rounded-none` 一起换掉。
+    从上游 vendored 进来的组件可能把圆角写死成 `rounded-none`（皮肤的默认值）——
+    补新组件时记得对齐到这套比例，别再出现「只有某个控件是直角」的割裂。
   */
   --radius: 0.625rem;
   --sidebar: oklch(0.986 0.002 67.8);
