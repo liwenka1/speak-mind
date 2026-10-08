@@ -216,6 +216,64 @@
 }
 
 /*
+  站标（wk 连写）的自绘循环：把笔顺「写」出来 → 停一会 → 擦掉 → 再写。
+
+  原理只靠 stroke-dasharray：`0 N` = 一点没画，`N 0` = 整条画满，中间的过渡由
+  浏览器自己补 —— 于是看起来就是一笔在写。300 是这条路径的总长（按贝塞尔采样
+  量得约 311，取整留一点余量；改了 `d` 要连它一起改）。
+
+  减少动效与打印时静态显示：把 dasharray 还原成实线、关掉动画。
+*/
+.site-logo path {
+  /*
+    那 1 个单位的偏移是为了**消掉一个点**：`stroke-linecap: round` 时，长度 0 的
+    短划会被画成一个直径等于笔宽的圆点。擦除的终点正好是 `stroke-dasharray: 0 320`
+    （一点没画），这个圆点就落在路径起点上 —— 看起来像"擦干净了但留了个点"。
+    把短划挪出起点（偏移 1）就没了，而画满（`320 0`）时这 1 个单位完全看不出来。
+
+    实测（librsvg 渲 400×400、笔画 3）：不加偏移时终点残留 112 个墨迹像素
+    （正好是直径 12px 的圆点），加了是 0。
+  */
+  stroke-dashoffset: 1;
+  stroke-dasharray: 320 0;
+  animation: site-logo-draw 10s infinite;
+}
+
+@keyframes site-logo-draw {
+  0% {
+    stroke-dasharray: 0 320;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  40% {
+    stroke-dasharray: 320 0;
+  }
+  85% {
+    stroke-dasharray: 320 0;
+  }
+  95%,
+  to {
+    stroke-dasharray: 0 320;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-logo path {
+    stroke-dasharray: none;
+    animation: none;
+  }
+}
+
+@media print {
+  .site-logo path {
+    stroke-dasharray: none;
+    animation: none;
+  }
+}
+
+/*
   日夜切换的「从按钮扩散」：View Transitions 会把整页快照成新旧两层，
   再交给 JS 只对**新**那层做 clip-path 圆形放大的动画（逻辑见 theme-toggle.tsx）。
 

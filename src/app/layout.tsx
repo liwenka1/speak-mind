@@ -33,6 +33,9 @@ const geistMono = Geist_Mono({
 const SITE_VALUES = { name: siteConfig.name, author: siteConfig.author.name };
 
 export const metadata: Metadata = {
+  // 站点图标由 route handler 生成（src/app/icon/route.ts）而不是 `app/icon.svg`
+  // 这个约定文件，所以 Next 不会自动注入它，得在这里写明
+  icons: { icon: "/icon" },
   title: {
     default: siteConfig.name,
     template: fill(siteConfig.text.titleTemplate, SITE_VALUES),

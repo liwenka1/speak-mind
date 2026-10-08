@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteLinkList } from "./site-links";
+import { SiteLogo } from "./site-logo";
 import { SiteNav } from "./site-nav";
 import {
   GitHubIcon,
@@ -44,11 +45,17 @@ function iconOf(link: SiteLink) {
 export function SiteHeader() {
   return (
     <header className="flex w-full flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 pt-8">
+      {/*
+        左上角是站标（wk 连写，会自己写一遍再擦掉），不再显示站名字样 —— 名字仍在
+        <title> 后缀、页脚版权，以及这个链接的可访问名里。标记大小一个数就能调。
+      */}
       <Link
         href={siteConfig.pages.home.href}
-        className="text-base font-medium tracking-tight"
+        aria-label={siteConfig.name}
+        title={siteConfig.name}
+        className="inline-flex shrink-0"
       >
-        {siteConfig.name}
+        <SiteLogo className="size-10" />
       </Link>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm sm:gap-x-5">
