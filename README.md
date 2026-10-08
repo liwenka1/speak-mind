@@ -17,7 +17,7 @@ timeZone: "Asia/Shanghai",   // 日期显示的时区
 description: "{author} 的个人站：…",   // 首页的 meta description，可用占位符
 author: {
   name: "VVenKAI",           // 首页自我介绍里的名字（会加粗显示）
-  email: "2020583117@qq.com",// 填了就自动出现在首页「找我」与页脚
+  email: "2020583117@qq.com",// 填了就自动出现在首页「找我」与顶栏
   links: [                   // 其他平台外链；GitHub 主页不用写这里
     { label: "X", href: "https://x.com/liwenka1" },
   ],
@@ -52,7 +52,7 @@ text: {                    // 页面文案，按页面分组
   },
   entry: { … },            // 内容详情页的文案
   footer: { copyright: "© {year} {name}" },
-  links: { github: "GitHub", email: "邮箱", source: "源码" },  // 推导链接的显示名
+  links: { github: "GitHub", email: "邮箱" },  // 推导链接的显示名
   titleTemplate: "%s · {name}",
   theme: { … }, common: { … },
 },
@@ -61,6 +61,7 @@ text: {                    // 页面文案，按页面分组
 文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{author}` 作者显示名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
 
 - 导航结构是 **首页 + 分区 + 关于**：首尾两项来自 `pages`，中间的分区来自 `sections`。首页**不再**重复列一遍分区（顶栏导航已经列了），只留「在做」与「找我」两块。
+- **顶栏与页脚不做「工具条 + 分隔线」**：顶栏**全宽、两侧分布** —— 站名贴页面左边，导航 / 联系方式 / 主题切换贴页面右边，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上顶栏是张开的；没有背景、没有下边框、也不 sticky（跟内容一起滚走）。页脚只有一行版权，外链不在页脚重复。右侧所有条目**共用同一套间距与 hover**：60% 透明、hover 到 100%，没有底色也没有边框 —— 图标按钮看起来就该像旁边那些分区链接，而不是一排控件（所以联系方式是 `<a>` 直接加类名、主题切换用原生 `<button>`，**都不用 shadcn 的 `Button`**：套上既会被 Base UI 加上 `role="button"`，ghost 那身皮也和「像 tag」冲突）。联系方式图标只看地址（`mailto:` / GitHub 主页 / x.com，认不出来给通用链接图标），可访问名与悬停提示仍取配置里的标签，窄屏只藏掉这一组（首页「找我」里仍是全的）。图标统一走 [`src/components/icons/remix.tsx`](src/components/icons/remix.tsx)：**Remix Icon**（Apache-2.0）的 `-line` 变体 —— GitHub / 邮箱 / X / 太阳 / 月亮在一个集合里就齐了，笔画一致；只内置用到的那几个路径，不装整套图标库。顶栏不放「源码」链接：`repoUrl()` 与 `links.source` 都已随之删除，将来要放回哪里都别手写地址（见下面「去重规则」）。
 - `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
 - 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
@@ -71,7 +72,7 @@ text: {                    // 页面文案，按页面分组
 
 同一个**事实**只写一次，其他地方一律引用或推导：
 
-- **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、仓库地址（`repoUrl()`）、新建 issue（`newIssueUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
+- **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、新建 issue（`newIssueUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
 - **名字不重抄**：页面名字写在 `pages` / `sections` 里，别处的文案要引用就写占位符（如关于页 description 的 `{title}`）。
 - **显示名与 GitHub 用户名是两个事实**：`author.name`（`VVenKAI`）与 `github.user`（`liwenka1`）故意分开配置 —— 将来把显示名改成中文名，也不必动 GitHub 用户名，不要合并。
 - `lang` / `timeZone` 也同时供日期格式化使用（见 [`src/lib/format.ts`](src/lib/format.ts)），改一处全站生效。

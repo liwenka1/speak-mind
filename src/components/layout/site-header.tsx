@@ -1,23 +1,70 @@
 import Link from "next/link";
+import { SiteLinkList } from "./site-links";
 import { SiteNav } from "./site-nav";
+import {
+  GitHubIcon,
+  LinkIcon,
+  MailIcon,
+  XIcon,
+} from "@/components/icons/remix";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { siteConfig } from "@/config/site";
+import { authorLinks, githubUrl, siteConfig, type SiteLink } from "@/config/site";
 
-/** 站点顶栏：左为站名（链回首页），右为导航与主题切换。站名与首页路径都来自 siteConfig。 */
+/**
+ * 外链 → 图标。只看地址（协议、域名），**不看**配置里的显示名 —— 名字是文案、
+ * 随时会改，图标不该跟着文案走；认不出来的给一个通用链接图标。
+ *
+ * 图标统一 16px（`size-4`）：和旁边 14px 的导航文字排在一行时，16px 的图形才和
+ * 汉字一样"重"。用的都是 Remix 的 `-line` 变体，笔画粗细一致。
+ */
+function iconOf(link: SiteLink) {
+  if (link.href.startsWith("mailto:")) return <MailIcon className="size-4" />;
+  if (link.href === githubUrl()) return <GitHubIcon className="size-4" />;
+  if (/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\//.test(link.href)) {
+    return <XIcon className="size-4" />;
+  }
+  return <LinkIcon className="size-4" />;
+}
+
+/**
+ * 站点顶栏。
+ *
+ * **全宽、两侧分布**：站名贴页面左边，导航 + 联系方式 + 主题切换
+ * 贴页面右边 —— 顶栏横跨整个窗口，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上
+ * 顶栏是"张开"的，不会被挤成窄窄一坨。
+ *
+ * **不是常驻工具条**：没有背景、没有下边框、不 sticky —— 它只是页面最上面的一行，
+ * 跟着内容一起滚走。层次交给留白与透明度，不交给边框。
+ *
+ * 右侧所有条目（导航 / 三个联系方式 / 主题切换）**共用同一套间距与 hover**：
+ * 60% 透明、hover 到 100%，没有底色、没有边框 —— 图标按钮看起来就该像旁边那些
+ * 分区链接，而不是一排控件。联系方式不放「源码」（作者不要）；窄屏只藏掉联系方式，
+ * 主题切换始终在（首页「找我」里那些联系方式仍是全的）。
+ */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-2xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-4">
-        <Link
-          href={siteConfig.pages.home.href}
-          className="text-sm font-medium tracking-tight"
-        >
-          {siteConfig.name}
-        </Link>
-        <div className="flex items-center gap-4">
-          <SiteNav />
-          <ThemeToggle />
-        </div>
+    <header className="flex w-full flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 pt-8">
+      <Link
+        href={siteConfig.pages.home.href}
+        className="text-base font-medium tracking-tight"
+      >
+        {siteConfig.name}
+      </Link>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm sm:gap-x-5">
+        <SiteNav />
+        {/*
+          类名直接写字，既不套 <Button> 也不用 buttonVariants()：这几个是**链接**，
+          外观又要和左边的导航文字一致（只有透明度变化）。套 <Button> 会被 Base UI
+          加上 role="button" / tabindex，读屏会把链接念成按钮。
+        */}
+        <SiteLinkList
+          links={authorLinks()}
+          className="hidden items-center gap-x-4 sm:flex sm:gap-x-5"
+          linkClassName="opacity-60 transition-opacity hover:opacity-100"
+          renderIcon={iconOf}
+        />
+        <ThemeToggle />
       </div>
     </header>
   );

@@ -34,9 +34,10 @@ export function SiteNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              active
-                ? "text-foreground"
-                : "text-muted-foreground transition-colors hover:text-foreground",
+              // 状态只用透明度：当前项不透明，其余 60%，hover 回到 100%。
+              // 不变色、不加下划线 —— 一行里十来个链接，只有安静的差别才好看。
+              "transition-opacity",
+              active ? "opacity-100" : "opacity-60 hover:opacity-100",
             )}
           >
             {item.label}

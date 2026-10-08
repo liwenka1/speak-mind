@@ -10,7 +10,8 @@
  * ## 去重规则（重要）
  *
  * 同一个**事实**只写一次，其他地方一律引用或推导：
- * - URL 不是独立事实：GitHub 主页与仓库地址都由 `github` 拼出来（见 `githubUrl` / `repoUrl`），
+ * - URL 不是独立事实：GitHub 主页与新建 issue 的地址都由 `github` 拼出来（见 `githubUrl` /
+ *   `newIssueUrl`），
  *   不要在配置里手写 `https://github.com/...`；
  * - 页面名字写在 `pages` / `sections` 里，文案要用时写 `{title}`，不要重抄一遍；
  * - 站名、作者显示名、年份、错误信息分别用 `{name}` `{author}` `{year}` `{error}` 占位符填入。
@@ -64,7 +65,7 @@ type SiteConfig = {
   author: {
     /** 显示名：首页自我介绍里会加粗显示 */
     name: string;
-    /** 邮箱：填了就自动出现在首页「找我」与页脚；留空则不显示 */
+    /** 邮箱：填了就自动出现在首页「找我」与顶栏；留空则不显示 */
     email: string;
     /**
      * 其他平台的外链（X、微博、Telegram…）。
@@ -78,8 +79,8 @@ type SiteConfig = {
   /**
    * GitHub：用户名与仓库名各写一次。
    *
-   * 个人主页（`githubUrl()`）与内容仓库地址（`repoUrl()`）都由这里拼出来，
-   * 所以配置里、组件里都不该再出现完整的 github.com 链接。
+   * 个人主页（`githubUrl()`）与新建 issue 的地址（`newIssueUrl()`，仓库名在这里用）
+   * 都由这里拼出来，所以配置里、组件里都不该再出现完整的 github.com 链接。
    */
   github: {
     /** 用户名 */
@@ -200,8 +201,6 @@ type SiteConfig = {
       github: string;
       /** 邮箱 */
       email: string;
-      /** 本站源码（内容仓库） */
-      source: string;
     };
 
     /** 浏览器标签页：子页面标题会被拼成「某某 · 站名」，`%s` 是子标题 */
@@ -316,7 +315,6 @@ export const siteConfig: SiteConfig = {
     links: {
       github: "GitHub",
       email: "邮箱",
-      source: "源码",
     },
 
     titleTemplate: "%s · {name}",
@@ -338,12 +336,6 @@ export function githubUrl(): string {
   return `https://github.com/${siteConfig.github.user}`;
 }
 
-/** 内容仓库地址（由 github 推导，页脚「源码」链接用） */
-export function repoUrl(): string {
-  const { user, repo } = siteConfig.github;
-  return `https://github.com/${user}/${repo}`;
-}
-
 /** 新建 issue 的地址（分区标签已预填），空状态里的按钮用 */
 export function newIssueUrl(label: string): string {
   const { user, repo } = siteConfig.github;
@@ -351,7 +343,7 @@ export function newIssueUrl(label: string): string {
 }
 
 /**
- * 首页「找我」与页脚共用的外链。
+ * 首页「找我」与顶栏共用的外链。
  *
  * GitHub 主页与邮箱都在这里由配置推导出来，所以 `author.links` 只放其他平台，
  * 否则同一个地址会写在两个地方。
