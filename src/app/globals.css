@@ -214,3 +214,31 @@
 [data-slot="empty-title"] {
   font-family: var(--font-heading-cjk);
 }
+
+/*
+  日夜切换的「从按钮扩散」：View Transitions 会把整页快照成新旧两层，
+  再交给 JS 只对**新**那层做 clip-path 圆形放大的动画（逻辑见 theme-toggle.tsx）。
+
+  这里必须把 UA 默认给这两层的动画与混合模式关掉，否则默认的交叉淡入 +
+  plus-lighter 混合会叠在圆上，圆的边缘发白、发脏：
+
+  - `animation: none` —— 关掉默认的 cross-fade；
+  - `mix-blend-mode: normal` —— 关掉默认的 plus-lighter；
+  - `z-index` —— 显式让新层压在旧层上面（伪元素树里本来就是新层在后 / 在上，
+    写出来是为了不依赖这个默认顺序）：圆是「揭开新主题」，反了就成了旧主题
+    去盖新主题的动画。
+
+  不需要 @supports 保护：不支持的浏览器不认识这两个伪元素，整条规则会被忽略；
+  而「减少动效」的用户根本走不到这里（theme-toggle 直接切主题，没有过渡）。
+*/
+::view-transition-new(root) {
+  z-index: 1;
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 0;
+  animation: none;
+  mix-blend-mode: normal;
+}
