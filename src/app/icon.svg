@@ -1,0 +1,21 @@
+<!--
+  站点图标（favicon）。
+
+  上一版是脚手架自带的 favicon.ico（Next.js 的默认图标，属于上游品牌资源），
+  已删掉，换成这个自己画的占位标记：深色圆角方块 + 站点名的首字母。
+  要换成自己的 logo / 头像，直接替换这个文件即可（Next.js 会把 app/icon.svg
+  作为站点图标输出）；用 SVG 而非 .ico 是为了普通文本就能改、也便于随主题换色。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#262322" />
+  <text
+    x="16"
+    y="16"
+    fill="#faf9f8"
+    font-family="ui-sans-serif, system-ui, sans-serif"
+    font-size="17"
+    font-weight="700"
+    text-anchor="middle"
+    dominant-baseline="central"
+  >S</text>
+</svg>
