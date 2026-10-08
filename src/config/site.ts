@@ -13,10 +13,10 @@
  * - URL 不是独立事实：GitHub 主页与仓库地址都由 `github` 拼出来（见 `githubUrl` / `repoUrl`），
  *   不要在配置里手写 `https://github.com/...`；
  * - 页面名字写在 `pages` / `sections` 里，文案要用时写 `{title}`，不要重抄一遍；
- * - 站名、年份、错误信息分别用 `{name}` `{year}` `{error}` 占位符填入。
+ * - 站名、作者显示名、年份、错误信息分别用 `{name}` `{author}` `{year}` `{error}` 占位符填入。
  * - 但「值恰好相同」不等于「同一个事实」：作者显示名（`author.name`）与 GitHub 用户名
- *   （`github.user`）当前都是 liwenka1，将来会各自变化（比如显示名改成中文名），
- *   所以**故意分开配置**，不要合并。
+ *   （`github.user`）就是两个值（VVenKAI / liwenka1），将来还会各自变化（比如显示名改成
+ *   中文名），所以**故意分开配置**，不要合并。
  *
  * ## 可以接受的重复
  *
@@ -57,7 +57,7 @@ type SiteConfig = {
   lang: string;
   /** 日期显示使用的时区 */
   timeZone: string;
-  /** 站点描述：首页的 meta description */
+  /** 站点描述：首页的 meta description；可以用 `{name}` `{author}` 占位符 */
   description: string;
 
   /** 站长本人 */
@@ -122,10 +122,6 @@ type SiteConfig = {
         title: string;
         items: string[];
       };
-      /** 「分区」区块 */
-      sections: {
-        title: string;
-      };
       /** 「找我」区块：链接来自 author.links / author.email */
       contact: {
         title: string;
@@ -134,11 +130,11 @@ type SiteConfig = {
 
     /** 关于页 */
     about: {
-      /** 浏览器标签页上的描述；`{title}` 关于页标题、`{name}` 站名 */
+      /** 浏览器标签页上的描述；`{title}` 关于页标题、`{author}` 作者显示名 */
       description: string;
-      /** 首段（正常字色） */
+      /** 首段（正常字色）；`{author}` 也可以写在里面 */
       lead: string;
-      /** 后续段落（浅色，可增删，一段一条） */
+      /** 后续段落（浅色，可增删，一段一条）；同样支持 `{author}` */
       paragraphs: string[];
     };
 
@@ -231,13 +227,16 @@ export const siteConfig: SiteConfig = {
   name: "speak-mind",
   lang: "zh-CN",
   timeZone: "Asia/Shanghai",
-  description: "个人主页与日记 —— 由 Next.js 与 GitHub Issues 驱动。",
+  description: "{author} 的个人站：日记、三言两语与随笔，内容由 GitHub Issues 驱动。",
 
   author: {
-    name: "liwenka1",
-    email: "",
+    name: "VVenKAI",
+    email: "2020583117@qq.com",
     // GitHub 主页不写这里，见下面的 github 配置
-    links: [],
+    links: [
+      // 本站就是主站，所以这里不放「主站」链接；只列其他平台
+      { label: "X", href: "https://x.com/liwenka1" },
+    ],
   },
 
   github: {
@@ -259,17 +258,18 @@ export const siteConfig: SiteConfig = {
   text: {
     home: {
       greeting: {
-        before: "Hey! 我是 ",
-        after: "，一个喜欢把想法随手记下来的人。",
+        before: "嗨，我是 ",
+        after: " 👋",
       },
       intro:
-        "这里放一段更长的自我介绍：比如你在做什么、关心什么、平时写点什么。",
+        "软件工程师 & 开源爱好者。这里放日记、三言两语与随笔 —— 想到什么就随手写下来。",
       doing: {
         title: "在做",
-        items: ["某个项目 / 工作 —— 一句话说明", "另一件事 —— 一句话说明"],
-      },
-      sections: {
-        title: "分区",
+        items: [
+          "写代码：前端为主（React / Next.js + TypeScript），也写过一点后端（Node.js / NestJS / Prisma）",
+          "做开源：next-web-nav、vven-tools、video-to-ppt，GitHub 累计 340+ stars",
+          "写东西：先在 GitHub Issues 里写，打上分区标签就发布到这个站",
+        ],
       },
       contact: {
         title: "找我",
@@ -277,9 +277,11 @@ export const siteConfig: SiteConfig = {
     },
 
     about: {
-      description: "{title} {name}",
-      lead: "这里是「关于」页的占位内容 —— 可以写你是谁、在做什么、为什么写这个站点。",
+      description: "{title} {author} —— 前端开发、开源项目，以及这个站是怎么运作的。",
+      lead: "我是 {author}，前端开发为主，React / Next.js + TypeScript 是主力栈，平时也维护几个自己的开源小项目。",
       paragraphs: [
+        "本行是前端：React / Next.js / Vue / Nuxt 都写过，工具链常用 Vite 与 Tailwind CSS；后端碰过一点 Node.js（NestJS、Prisma），部署多走 Vercel、Docker 与 Nginx。2017–2021 在湖南城市学院读的本科。",
+        "工作之外：周末的篮球场常客（自称急停跳投专业户），追番清单永远比 TODO 列表长，Steam 库存还在持续 +1。",
         "本站用 Next.js 搭建，内容直接以 GitHub Issues 作为数据源：给 issue 打上对应分区的标签，它就会出现在相应页面里。",
       ],
     },

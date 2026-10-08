@@ -2,16 +2,19 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
 import { fill } from "@/lib/template";
 
+/** 页面文案里 `{author}` 的值：meta description 与正文段落共用同一份 */
+const AUTHOR_VALUES = { author: siteConfig.author.name };
+
 export const metadata: Metadata = {
   // 后缀「· 站名」由根布局的 title.template 统一补上，这里只给短标题
   title: siteConfig.pages.about.title,
   description: fill(siteConfig.text.about.description, {
     title: siteConfig.pages.about.title,
-    name: siteConfig.name,
+    ...AUTHOR_VALUES,
   }),
 };
 
-/** 关于页：正文段落全部来自 siteConfig.text.about */
+/** 关于页：正文段落全部来自 siteConfig.text.about，里面的 `{author}` 在这里填 */
 export default function AboutPage() {
   const text = siteConfig.text.about;
 
@@ -24,10 +27,10 @@ export default function AboutPage() {
       <h1 className="sr-only">{siteConfig.pages.about.title}</h1>
 
       <div className="space-y-4">
-        <p>{text.lead}</p>
+        <p>{fill(text.lead, AUTHOR_VALUES)}</p>
         {text.paragraphs.map((paragraph) => (
           <p key={paragraph} className="text-muted-foreground">
-            {paragraph}
+            {fill(paragraph, AUTHOR_VALUES)}
           </p>
         ))}
       </div>

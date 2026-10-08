@@ -1,11 +1,15 @@
-import Link from "next/link";
 import { SiteLinkList } from "@/components/layout/site-links";
-import { authorLinks, sectionPath, siteConfig } from "@/config/site";
+import { authorLinks, siteConfig } from "@/config/site";
 
 const linkClass =
   "underline underline-offset-4 decoration-border transition-colors hover:decoration-foreground";
 
-/** 首页文案全部来自 siteConfig.text.home，这里不写死任何句子 */
+/**
+ * 首页文案全部来自 siteConfig.text.home，这里不写死任何句子。
+ *
+ * 首页**不列分区**：顶栏导航已经把它们全列出来了，再抄一遍只是噪音。
+ * 分区页照旧由 /tag/<label> 提供（地址用 sectionPath() 推导）。
+ */
 const text = siteConfig.text.home;
 
 export default function Home() {
@@ -27,21 +31,6 @@ export default function Home() {
         <ul className="mt-3 space-y-1.5">
           {text.doing.items.map((item) => (
             <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="mt-12">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {text.sections.title}
-        </h2>
-        <ul className="mt-3 space-y-1.5">
-          {siteConfig.sections.map((section) => (
-            <li key={section.label}>
-              <Link href={sectionPath(section.label)} className={linkClass}>
-                {section.title}
-              </Link>
-            </li>
           ))}
         </ul>
       </section>

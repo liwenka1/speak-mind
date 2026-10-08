@@ -26,13 +26,18 @@ const geistMono = Geist_Mono({
 /**
  * 站名与描述来自 siteConfig；子页面只要给个短标题，
  * 后缀由 template 自动补成「某某 · 站名」。
+ *
+ * description 里可以写 `{name}`（站名）与 `{author}`（作者显示名），在这里填一次；
+ * 子页面要换成自己的 description 时自己填（见关于页）。
  */
+const SITE_VALUES = { name: siteConfig.name, author: siteConfig.author.name };
+
 export const metadata: Metadata = {
   title: {
     default: siteConfig.name,
-    template: fill(siteConfig.text.titleTemplate, { name: siteConfig.name }),
+    template: fill(siteConfig.text.titleTemplate, SITE_VALUES),
   },
-  description: siteConfig.description,
+  description: fill(siteConfig.description, SITE_VALUES),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

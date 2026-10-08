@@ -14,11 +14,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 name: "speak-mind",          // 顶栏站名 / 页脚版权 / <title> 后缀
 lang: "zh-CN",               // <html lang>，也是日期格式化的语言
 timeZone: "Asia/Shanghai",   // 日期显示的时区
-description: "…",            // 首页的 meta description
+description: "{author} 的个人站：…",   // 首页的 meta description，可用占位符
 author: {
-  name: "liwenka1",          // 首页自我介绍里的名字（会加粗显示）
-  email: "",                 // 填了就自动出现在首页「找我」与页脚
-  links: [],                 // 其他平台外链；GitHub 主页不用写这里
+  name: "VVenKAI",           // 首页自我介绍里的名字（会加粗显示）
+  email: "2020583117@qq.com",// 填了就自动出现在首页「找我」与页脚
+  links: [                   // 其他平台外链；GitHub 主页不用写这里
+    { label: "X", href: "https://x.com/liwenka1" },
+  ],
 },
 github: { user: "liwenka1", repo: "speak-mind" },  // 个人主页与仓库地址都由它推导
 pages: {
@@ -32,10 +34,9 @@ sections: [
 ],
 text: {                    // 页面文案，按页面分组
   home: {
-    greeting: { before: "Hey! 我是 ", after: "，一个喜欢把想法随手记下来的人。" },
+    greeting: { before: "嗨，我是 ", after: " 👋" },
     intro: "…",
     doing: { title: "在做", items: ["…", "…"] },
-    sections: { title: "分区" },
     contact: { title: "找我" },
   },
   about: { description: "{title} {name}", lead: "…", paragraphs: ["…"] },
@@ -57,9 +58,9 @@ text: {                    // 页面文案，按页面分组
 },
 ```
 
-文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
+文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{author}` 作者显示名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
 
-- 导航结构是 **首页 + 分区 + 关于**：首尾两项来自 `pages`，中间的分区来自 `sections`。
+- 导航结构是 **首页 + 分区 + 关于**：首尾两项来自 `pages`，中间的分区来自 `sections`。首页**不再**重复列一遍分区（顶栏导航已经列了），只留「在做」与「找我」两块。
 - `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
 - 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
@@ -72,7 +73,7 @@ text: {                    // 页面文案，按页面分组
 
 - **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、仓库地址（`repoUrl()`）、新建 issue（`newIssueUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
 - **名字不重抄**：页面名字写在 `pages` / `sections` 里，别处的文案要引用就写占位符（如关于页 description 的 `{title}`）。
-- **值恰好相同 ≠ 同一个事实**：`author.name`（显示名）与 `github.user`（GitHub 用户名）当前都是 `liwenka1`，但将来会各自变化（比如显示名改成中文名），所以故意分开配置，不要合并。
+- **显示名与 GitHub 用户名是两个事实**：`author.name`（`VVenKAI`）与 `github.user`（`liwenka1`）故意分开配置 —— 将来把显示名改成中文名，也不必动 GitHub 用户名，不要合并。
 - `lang` / `timeZone` 也同时供日期格式化使用（见 [`src/lib/format.ts`](src/lib/format.ts)），改一处全站生效。
 
 有些重复是**故意保留**的（去重只针对「会一起变化的事实」）：`github.repo` 与 `name` 可能同值但语义不同（不默认取站名，避免静默指向错仓库）；`package.json` 的包名读不到 TS 配置；README 的示例需与配置同步。
