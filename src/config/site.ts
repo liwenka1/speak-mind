@@ -146,12 +146,23 @@ type SiteConfig = {
     section: {
       /** 浏览器标签页上的描述；`{name}` 站名、`{title}` 分区名 */
       description: string;
-      /** 该分区还没内容时的空状态（用 shadcn 的 Empty 组件渲染） */
+      /**
+       * 该分区还没内容时的空状态（用 shadcn 的 Empty 组件渲染）。
+       *
+       * 骨架照官方 Empty 的 example：图标 + 标题 + **一行说明** + 两个动作
+       * （一个实心主按钮 + 一条次级文字链）。说明那行不能省 —— 空状态好看的
+       * 本质是「留白 + 文字层次」，只剩一行标题时，四周的留白就没东西撑着，
+       * 看着就是个空洞。
+       */
       empty: {
         /** 空状态标题 */
         title: string;
-        /** 按钮文案：点进 GitHub 新建 issue，分区标签已预填 */
+        /** 空状态说明；`{label}` 是这个分区对应的 GitHub 标签名 */
+        description: string;
+        /** 主按钮文案：点进 GitHub 新建 issue，分区标签已预填 */
         action: string;
+        /** 次级入口的文案（文字链）：去关于页看这个站是怎么运作的 */
+        guide: string;
       };
       /** 读取失败时（也用 Empty 渲染）；`{error}` 是具体错误 */
       error: string;
@@ -277,7 +288,9 @@ export const siteConfig: SiteConfig = {
       description: "{name} 的{title}",
       empty: {
         title: "还没有内容",
+        description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
         action: "去 GitHub 写一条",
+        guide: "这个站是怎么运作的",
       },
       error: "暂时读不到内容：{error}",
     },

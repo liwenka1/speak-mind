@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  ArrowRightIcon,
   ArrowUpRightIcon,
   SquarePenIcon,
   TriangleAlertIcon,
@@ -88,15 +90,25 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
               <SquarePenIcon />
             </EmptyMedia>
             <EmptyTitle>{text.empty.title}</EmptyTitle>
+            {/*
+              官方 Empty 的 example 里标题下面还有这行说明。它不是装饰：留白
+              要周围的文字撑着，只有标题时空状态就是一块没有信息的空白。
+            */}
+            <EmptyDescription>
+              {fill(text.empty.description, { label: section.label })}
+            </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             {/*
+              唯一的动作不该是描边小按钮：它是全页仅有的视觉落点，所以用实心
+              的 default（官方 example 的主动作也是实心）。
+
               这是个跳转链接：用 Button 的 render 换成 <a>，同时把 nativeButton
               设为 false —— 否则 Base UI 会按按钮处理它，给链接加上 role="button" /
               tabindex，读屏会把链接念成按钮。
             */}
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               nativeButton={false}
               render={
@@ -109,6 +121,21 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
             >
               {text.empty.action}
               <ArrowUpRightIcon data-icon="inline-end" />
+            </Button>
+            {/*
+              次级入口：想问「这是什么」而不是立刻动手的人，从这里去关于页
+              （官方 example 里对应那个 Learn more ↗）。站内跳转用 next/link，
+              nativeButton 同样要设 false。
+            */}
+            <Button
+              variant="link"
+              size="sm"
+              className="text-muted-foreground"
+              nativeButton={false}
+              render={<Link href={siteConfig.pages.about.href} />}
+            >
+              {text.empty.guide}
+              <ArrowRightIcon data-icon="inline-end" />
             </Button>
           </EmptyContent>
         </Empty>

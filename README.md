@@ -43,7 +43,9 @@ text: {                    // 页面文案，按页面分组
     description: "{name} 的{title}",
     empty: {               // 没有内容时渲染空状态（shadcn 的 Empty 组件）
       title: "还没有内容",
-      action: "去 GitHub 写一条",   // 跳到新建 issue，标签已预填
+      description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
+      action: "去 GitHub 写一条",   // 主按钮：跳到新建 issue，标签已预填
+      guide: "这个站是怎么运作的",  // 次级文字链：去关于页
     },
     error: "暂时读不到内容：{error}",   // 读取失败时也用 Empty 渲染
   },
@@ -55,14 +57,14 @@ text: {                    // 页面文案，按页面分组
 },
 ```
 
-文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{title}` 分区名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
+文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
 
 - 导航结构是 **首页 + 分区 + 关于**：首尾两项来自 `pages`，中间的分区来自 `sections`。
 - `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
 - 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
 - 「关于」页正文按段配置：`lead` 是首段（正常字色），`paragraphs` 是后续段落（浅色），可增删。
-- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)）：图标 + `text.section.empty` 的标题（`EmptyTitle`），加一个按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导）。空状态不重复分区名、也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。
+- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)），骨架照官方 Empty 的 example：图标 + 标题（`EmptyTitle`）+ 一行说明（`EmptyDescription`，`{label}` 是这个分区对应的 GitHub 标签名）+ 两个动作 —— 实心主按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导），下面一条次级文字链去关于页。**说明那行不能省**：空状态好看的本质是「留白 + 文字层次」，只剩一行标题时，中间那块留白就是没有信息的空洞。空状态不重复分区名、也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。
 
 ### 去重规则
 
