@@ -259,9 +259,43 @@
   }
 }
 
+/*
+  内容的入场：自上而下逐个浮现（首页在用，见 page.tsx）。
+
+  只需要两样东西 —— 一个 keyframes（上浮 10px + 淡入）和一个 CSS 变量 `--i`：
+  元素用 `style={{ "--i": n }}` 报出自己的序号，延时就是 `n × 90ms`。于是**排版
+  顺序就是出场顺序**，不必为每一块写一条延时规则，也**不需要任何 JS**。
+
+  `both` 不能省：延时期间元素要停在起始帧（opacity 0），否则会先"闪一下"再入场。
+
+  节奏（慢一点、从容）：间隔 90ms 且序号从 1 起 —— 第一块也停一拍再出现；
+  时长 1s、缓动 `ease`。时长给足而位移只有 10px，看起来是"浮上来"而不是"弹出来"；
+  缓动特意用 `ease` 而不是 expo-out：后者会在前 400ms 就冲完，剩下 600ms 拖尾，
+  观感是"没动"，配 1s 反而显慢。
+
+  想调节奏就动这三个数：位移 10px、时长 1s、每块间隔 90ms。
+*/
+.enter {
+  animation: enter-up 1s ease both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+/* 只写起始帧，终点就用元素自己的样式（opacity 1、没有位移） */
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-logo path {
     stroke-dasharray: none;
+    animation: none;
+  }
+
+  /* 关掉动画就回到元素的静态样式（opacity 1、没有位移），内容照样完整可见 */
+  .enter {
     animation: none;
   }
 }
