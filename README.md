@@ -57,7 +57,7 @@ text: {                    // 页面文案，按页面分组
     error: "暂时读不到内容：{error}",   // 读取失败时也用 Empty 渲染
   },
   entry: { … },            // 内容详情页的文案
-  footer: { copyright: "© {year} {name}" },
+  footer: { copyright: "© {year} {author}" },
   links: { github: "GitHub", email: "邮箱" },  // 推导链接的显示名
   titleTemplate: "%s · {name}",
   theme: { … }, common: { … },

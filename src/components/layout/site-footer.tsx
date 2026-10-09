@@ -16,7 +16,7 @@ export function SiteFooter() {
       <p className="text-sm text-muted-foreground">
         {fill(siteConfig.text.footer.copyright, {
           year: new Date().getFullYear(),
-          name: siteConfig.name,
+          author: siteConfig.author.name,
         })}
       </p>
     </footer>

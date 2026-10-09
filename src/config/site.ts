@@ -215,7 +215,7 @@ type SiteConfig = {
 
     /** 页脚 */
     footer: {
-      /** `{year}` 当前年份、`{name}` 站名 */
+      /** `{year}` 当前年份、`{author}` 作者显示名 */
       copyright: string;
     };
 
@@ -339,7 +339,7 @@ export const siteConfig: SiteConfig = {
     },
 
     footer: {
-      copyright: "© {year} {name}",
+      copyright: "© {year} {author}",
     },
 
     links: {
