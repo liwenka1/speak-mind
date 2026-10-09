@@ -1,31 +1,9 @@
 import Link from "next/link";
-import { SiteLinkList } from "./site-links";
+import { SiteLinkList, iconOf } from "./site-links";
 import { SiteLogo } from "./site-logo";
 import { SiteNav } from "./site-nav";
-import {
-  GitHubIcon,
-  LinkIcon,
-  MailIcon,
-  XIcon,
-} from "@/components/icons/remix";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { authorLinks, githubUrl, siteConfig, type SiteLink } from "@/config/site";
-
-/**
- * 外链 → 图标。只看地址（协议、域名），**不看**配置里的显示名 —— 名字是文案、
- * 随时会改，图标不该跟着文案走；认不出来的给一个通用链接图标。
- *
- * 图标统一 16px（`size-4`）：和旁边 14px 的导航文字排在一行时，16px 的图形才和
- * 汉字一样"重"。用的都是 Remix 的 `-line` 变体，笔画粗细一致。
- */
-function iconOf(link: SiteLink) {
-  if (link.href.startsWith("mailto:")) return <MailIcon className="size-4" />;
-  if (link.href === githubUrl()) return <GitHubIcon className="size-4" />;
-  if (/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\//.test(link.href)) {
-    return <XIcon className="size-4" />;
-  }
-  return <LinkIcon className="size-4" />;
-}
+import { authorLinks, siteConfig } from "@/config/site";
 
 /**
  * 站点顶栏。
@@ -40,7 +18,7 @@ function iconOf(link: SiteLink) {
  * 右侧所有条目（导航 / 三个联系方式 / 主题切换）**共用同一套间距与 hover**：
  * 60% 透明、hover 到 100%，没有底色、没有边框 —— 图标按钮看起来就该像旁边那些
  * 分区链接，而不是一排控件。联系方式不放「源码」（作者不要）；窄屏只藏掉联系方式，
- * 主题切换始终在（首页「找我」里那些联系方式仍是全的）。
+ * 主题切换始终在（首页「找我」里另有完整的一行）。
  */
 export function SiteHeader() {
   return (

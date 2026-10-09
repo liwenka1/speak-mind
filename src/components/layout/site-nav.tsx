@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { sectionPath, siteConfig } from "@/config/site";
 
-/** 首页路径：判断「当前是否是首页」时要用，单独取出来 */
-const HOME_HREF = siteConfig.pages.home.href;
-
-/** 导航 = 首页 + 配置里的分区 + 关于（文案与路径都来自 siteConfig） */
+/**
+ * 导航 = 配置里的分区 + 关于（文案与路径都来自 siteConfig）。
+ *
+ * **没有「首页」**：左上角的站标就是回首页的入口，一行导航里再写一个「首页」，
+ * 只是把同一件事说两遍。
+ */
 const NAV_ITEMS = [
-  { href: HOME_HREF, label: siteConfig.pages.home.title },
   ...siteConfig.sections.map((section) => ({
     href: sectionPath(section.label),
     label: section.title,
@@ -24,10 +25,7 @@ export function SiteNav() {
   return (
     <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm sm:gap-x-5">
       {NAV_ITEMS.map((item) => {
-        const active =
-          item.href === HOME_HREF
-            ? pathname === HOME_HREF
-            : pathname.startsWith(item.href);
+        const active = pathname.startsWith(item.href);
 
         return (
           <Link

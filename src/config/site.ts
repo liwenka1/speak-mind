@@ -10,8 +10,8 @@
  * ## 去重规则（重要）
  *
  * 同一个**事实**只写一次，其他地方一律引用或推导：
- * - URL 不是独立事实：GitHub 主页与新建 issue 的地址都由 `github` 拼出来（见 `githubUrl` /
- *   `newIssueUrl`），
+ * - URL 不是独立事实：GitHub 主页、仓库地址与新建 issue 的地址都由 `github` 拼出来
+ *   （见 `githubUrl` / `repoUrl` / `newIssueUrl`），
  *   不要在配置里手写 `https://github.com/...`；
  * - 页面名字写在 `pages` / `sections` 里，文案要用时写 `{title}`，不要重抄一遍；
  * - 站名、作者显示名、年份、错误信息分别用 `{name}` `{author}` `{year}` `{error}` 占位符填入。
@@ -51,6 +51,26 @@ export type SiteSection = {
   label: string;
 };
 
+/**
+ * 首页「在做」里的一条：短标签 + 说明，说明后面可以跟几个仓库小标签。
+ *
+ * 拆成结构化字段（而不是一整句自由文本）是为了让项目名能被渲染成小标签；
+ * 句子照样只写在配置里，组件只管排版。
+ */
+type HomeDoingItem = {
+  /** 短标签（中黑显示，后面自动跟一个「：」） */
+  label: string;
+  /** 说明文字；这一条只有仓库小标签时可以不写 */
+  text?: string;
+  /**
+   * 跟在后面的仓库小标签 —— 只写**仓库名**，地址由 `github.user` 推导
+   * （见 `repoUrl()`），不要在配置里手写完整地址。
+   */
+  repos?: string[];
+  /** 小标签之后再接的一段文字（如「，GitHub 累计 340+ stars」） */
+  after?: string;
+};
+
 type SiteConfig = {
   /** 站名：顶栏、页脚版权、页面标题后缀都用它 */
   name: string;
@@ -63,12 +83,12 @@ type SiteConfig = {
 
   /** 站长本人 */
   author: {
-    /** 显示名：首页自我介绍里会加粗显示 */
+    /** 显示名：首页的大标题（h1）就是它，`{author}` 占位符也填这个值 */
     name: string;
-    /** 邮箱：填了就自动出现在首页「找我」与顶栏；留空则不显示 */
+    /** 邮箱：填了就出现在首页「找我」那一行与顶栏；留空则不显示 */
     email: string;
     /**
-     * 其他平台的外链（X、微博、Telegram…）。
+     * 其他平台的外链（Twitter、微博、Telegram…）。
      *
      * GitHub 主页与邮箱由 `github` / `author.email` 推导，**不要写在这里**，
      * 否则同一个地址会出现在两个地方。
@@ -95,8 +115,8 @@ type SiteConfig = {
   };
 
   /**
-   * 固定页面。导航结构固定为：**首页 + 下面 `sections` 里配置的分区 + 关于**，
-   * 首尾两项的名字与路径来自这里。
+   * 固定页面。顶栏导航 = 下面 `sections` 里配置的分区 + 关于 —— **没有「首页」**：
+   * 左上角的站标就是回首页的入口，不占导航里的一格。
    */
   pages: {
     home: SitePage;
@@ -110,21 +130,25 @@ type SiteConfig = {
   text: {
     /** 首页 */
     home: {
-      /** 首屏问候：加粗的作者名插在 before 与 after 之间 */
-      greeting: {
-        /** 以空格结尾，和后面的作者名隔开 */
-        before: string;
-        after: string;
-      };
-      /** 问候下面那段介绍 */
+      /**
+       * 首段：一句话说清「我是谁、这里写什么」。
+       *
+       * 页面大标题（h1）就是作者名（`author.name`），所以这里不用再写一遍名字，
+       * 要提就用 `{author}` 占位符。
+       */
       intro: string;
-      /** 「在做」区块 */
+      /** 「在做」那一段 */
       doing: {
+        /** 段落引子（渲染成「在做：」），后面接 items 里的几条 */
         title: string;
-        items: string[];
+        items: HomeDoingItem[];
       };
-      /** 「找我」区块：链接来自 author.links / author.email */
+      /**
+       * 「找我」：只有引子 —— 下面那一行联系方式（GitHub / 邮箱 / 其他平台）
+       * 直接来自 `authorLinks()`，与顶栏同一份、同顺序。
+       */
       contact: {
+        /** 引子（「找我」） */
         title: string;
       };
     };
@@ -234,7 +258,7 @@ export const siteConfig: SiteConfig = {
     // GitHub 主页不写这里，见下面的 github 配置
     links: [
       // 本站就是主站，所以这里不放「主站」链接；只列其他平台
-      { label: "X", href: "https://x.com/liwenka1" },
+      { label: "Twitter", href: "https://x.com/liwenka1" },
     ],
   },
 
@@ -256,18 +280,24 @@ export const siteConfig: SiteConfig = {
 
   text: {
     home: {
-      greeting: {
-        before: "嗨，我是 ",
-        after: " 👋",
-      },
       intro:
-        "软件工程师 & 开源爱好者。这里放日记、三言两语与随笔 —— 想到什么就随手写下来。",
+        "嗨，我是 {author}，一名软件工程师 和 开源爱好者。",
       doing: {
         title: "在做",
         items: [
-          "写代码：前端为主（React / Next.js + TypeScript），也写过一点后端（Node.js / NestJS / Prisma）",
-          "做开源：next-web-nav、vven-tools、video-to-ppt，GitHub 累计 340+ stars",
-          "写东西：先在 GitHub Issues 里写，打上分区标签就发布到这个站",
+          {
+            label: "写代码",
+            text: "前端为主（React / Next.js + TypeScript），也写过一点后端（Node.js / NestJS / Prisma）",
+          },
+          {
+            label: "做开源",
+            repos: ["next-web-nav", "vven-tools", "video-to-ppt"],
+            after: "，GitHub 累计 340+ stars",
+          },
+          {
+            label: "写东西",
+            text: "先在 GitHub Issues 里写，打上分区标签就发布到这个站",
+          },
         ],
       },
       contact: {
@@ -334,6 +364,11 @@ export const siteConfig: SiteConfig = {
 /** GitHub 个人主页（由 github.user 推导） */
 export function githubUrl(): string {
   return `https://github.com/${siteConfig.github.user}`;
+}
+
+/** 某个仓库的地址（由 github.user 推导）；首页「在做」里的仓库小标签用 */
+export function repoUrl(repo: string): string {
+  return `https://github.com/${siteConfig.github.user}/${repo}`;
 }
 
 /** 新建 issue 的地址（分区标签已预填），空状态里的按钮用 */

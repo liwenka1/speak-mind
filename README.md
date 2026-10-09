@@ -16,8 +16,8 @@ lang: "zh-CN",               // <html lang>，也是日期格式化的语言
 timeZone: "Asia/Shanghai",   // 日期显示的时区
 description: "{author} 的个人站：…",   // 首页的 meta description，可用占位符
 author: {
-  name: "VVenKAI",           // 首页自我介绍里的名字（会加粗显示）
-  email: "2020583117@qq.com",// 填了就自动出现在首页「找我」与顶栏
+  name: "VVenKAI",           // 首页大标题（h1）就是它
+  email: "2020583117@qq.com",// 填了就出现在首页「找我」与顶栏
   links: [                   // 其他平台外链；GitHub 主页不用写这里
     { label: "X", href: "https://x.com/liwenka1" },
   ],
@@ -33,11 +33,17 @@ sections: [
   { title: "随笔", label: "essay" },
 ],
 text: {                    // 页面文案，按页面分组
-  home: {
-    greeting: { before: "嗨，我是 ", after: " 👋" },
-    intro: "…",
-    doing: { title: "在做", items: ["…", "…"] },
-    contact: { title: "找我" },
+  home: {                  // 首页：一行名字 + 几段正文
+    intro: "嗨，我是 {author} 👋 …",   // 首段（名字已经是 h1，要提就用 {author}）
+    doing: {               // 「在做」：一条一行，短标签 + 说明
+      title: "在做",
+      items: [
+        { label: "写代码", text: "前端为主（…），也写过一点后端（…）" },
+        { label: "做开源", repos: ["next-web-nav", "vven-tools"], after: "，GitHub 累计 340+ stars" },
+        { label: "写东西", text: "先在 GitHub Issues 里写，打上分区标签就发布到这个站" },
+      ],
+    },
+    contact: { title: "找我" },   // 下面那一行联系方式来自 authorLinks()
   },
   about: { description: "{title} {name}", lead: "…", paragraphs: ["…"] },
   section: {               // 分区列表页
@@ -60,8 +66,9 @@ text: {                    // 页面文案，按页面分组
 
 文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{author}` 作者显示名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
 
-- 导航结构是 **首页 + 分区 + 关于**：首尾两项来自 `pages`，中间的分区来自 `sections`。首页**不再**重复列一遍分区（顶栏导航已经列了），只留「在做」与「找我」两块。
-- **顶栏与页脚不做「工具条 + 分隔线」**：顶栏**全宽、两侧分布** —— 左上角是**站标**（手画的「wk」连写，一笔到底，会自己写一遍再擦掉，见 [`site-logo.tsx`](src/components/layout/site-logo.tsx) 与 `globals.css` 里的 `.site-logo path`），导航 / 联系方式 / 主题切换贴页面右边，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上顶栏是张开的；没有背景、没有下边框、也不 sticky（跟内容一起滚走）。页脚只有一行版权，外链不在页脚重复。右侧所有条目**共用同一套间距与 hover**：60% 透明、hover 到 100%，没有底色也没有边框 —— 图标按钮看起来就该像旁边那些分区链接，而不是一排控件（所以联系方式是 `<a>` 直接加类名、主题切换用原生 `<button>`，**都不用 shadcn 的 `Button`**：套上既会被 Base UI 加上 `role="button"`，ghost 那身皮也和「像 tag」冲突）。联系方式图标只看地址（`mailto:` / GitHub 主页 / x.com，认不出来给通用链接图标），可访问名与悬停提示仍取配置里的标签，窄屏只藏掉这一组（首页「找我」里仍是全的）。图标统一走 [`src/components/icons/remix.tsx`](src/components/icons/remix.tsx)：**Remix Icon**（Apache-2.0）的 `-line` 变体 —— GitHub / 邮箱 / X / 太阳 / 月亮在一个集合里就齐了，笔画一致；只内置用到的那几个路径，不装整套图标库。顶栏不放「源码」链接：`repoUrl()` 与 `links.source` 都已随之删除，将来要放回哪里都别手写地址（见下面「去重规则」）。
+- 导航结构是 **分区 + 关于**：分区来自 `sections`，末项来自 `pages.about`；**没有「首页」** —— 左上角的站标就是回首页的入口，同一件事不必说两遍。
+- **首页是「一行名字 + 几段正文」**：`<h1>` 是 `author.name`，下面依次是首段（`intro`）、「在做」那一段（`doing.items`：短标签 + 说明，`repos` 里的仓库名渲染成内联小标签，地址由 `repoUrl()` 推导）、以及「找我」——**就一行**「图标 + 文字」，内容与顺序都直接来自 `authorLinks()`（和顶栏同一份：GitHub / 邮箱 / 其他平台，邮箱的名在 `author.email` 里）。首页不重复列分区。
+- **顶栏与页脚不做「工具条 + 分隔线」**：顶栏**全宽、两侧分布** —— 左上角是**站标**（手画的「wk」连写，一笔到底，会自己写一遍再擦掉，见 [`site-logo.tsx`](src/components/layout/site-logo.tsx) 与 `globals.css` 里的 `.site-logo path`），导航 / 联系方式 / 主题切换贴页面右边，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上顶栏是张开的；没有背景、没有下边框、也不 sticky（跟内容一起滚走）。页脚只有一行版权，外链不在页脚重复。右侧所有条目**共用同一套间距与 hover**：60% 透明、hover 到 100%，没有底色也没有边框 —— 图标按钮看起来就该像旁边那些分区链接，而不是一排控件（所以联系方式是 `<a>` 直接加类名、主题切换用原生 `<button>`，**都不用 shadcn 的 `Button`**：套上既会被 Base UI 加上 `role="button"`，ghost 那身皮也和「像 tag」冲突）。联系方式图标只看地址（`mailto:` / GitHub 主页 / x.com，认不出来给通用链接图标），可访问名与悬停提示仍取配置里的标签，窄屏只藏掉这一组（首页「找我」里另有完整的一行）。图标统一走 [`src/components/icons/remix.tsx`](src/components/icons/remix.tsx)：**Remix Icon**（Apache-2.0）的 `-line` 变体 —— GitHub / 邮箱 / X / 太阳 / 月亮在一个集合里就齐了，笔画一致；只内置用到的那几个路径，不装整套图标库。顶栏不放「源码」链接（`links.source` 已删除）；`repoUrl()` 只服务首页「在做」里的仓库小标签，别处要放地址也别手写（见下面「去重规则」）。
 - **标签页图标**与顶栏标记**共用同一份路径数据**（[`site-logo.tsx`](src/components/layout/site-logo.tsx) 里的 `SITE_LOGO_PATH`）：由 [`src/app/icon/route.ts`](src/app/icon/route.ts) 生成到 `/icon` —— 笔画 4.5（`/icon` 而不是 `/icon.svg` 是因为目录名撞上了 Next 的元数据文件约定，所以根布局里要显式写 `metadata.icons`），不做动画，并按 `prefers-color-scheme` 在深浅两色间切换（favicon 只能跟系统的明暗，跟不了站内的 `.dark` 类）。
 - **日夜切换是从按钮扩散的**：点主题按钮时用 View Transitions 把整页快照成新旧两层，再让新层从一个圆放大到盖满视口 —— 圆心取按钮中心（不是鼠标坐标，键盘触发也一样），半径取到视口最远角，因此看着就是「从右上角扩散」。逻辑在 [`theme-toggle.tsx`](src/components/theme/theme-toggle.tsx)，伪元素那半规则在 `globals.css`；浏览器不支持 View Transitions（或系统开了「减弱动态效果」）时直接切主题，没有动画。
 - `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
@@ -102,12 +109,12 @@ text: {                    // 页面文案，按页面分组
 
 | 路径 | 说明 |
 | --- | --- |
-| `/` | 首页（自我介绍） |
+| `/` | 首页（名字 + 自我介绍 + 在做 + 找我） |
 | `/tag/<label>` | 分区列表 |
 | `/entry/<编号>` | 内容详情 |
 | `/about` | 关于 |
 
-> 页面名由顶栏导航的高亮承担，页面里不再重复一个大标题。为了屏幕阅读器和文档大纲，每个页面仍保留一个 `sr-only` 的 `<h1>`（视觉上不显示）。内容详情页的 `<h1>` 是 issue 自己的标题，不属于重复，保留显示。
+> 页面名由顶栏导航的高亮承担，页面里不再重复一个大标题 —— 只有首页例外：它的 `<h1>` 就是 `author.name`（顶栏左上角是站标、没有字样，所以不算重复）。其余页面仍保留一个 `sr-only` 的 `<h1>` 给屏幕阅读器和文档大纲。内容详情页的 `<h1>` 是 issue 自己的标题，不属于重复，保留显示。
 
 ### 正文排版
 
