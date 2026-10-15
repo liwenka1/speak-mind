@@ -10,6 +10,7 @@ import {
 import { getEntriesByLabel, type Entry } from "@/lib/github";
 import { findSection, newIssueUrl, siteConfig } from "@/config/site";
 import { fill } from "@/lib/template";
+import { enterAt } from "@/lib/enter";
 import { EntryList } from "@/components/entry/entry-list";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,6 +75,7 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
 
       {errorMessage ? (
         <Empty>
+          {/* 报错不挂 `.enter`：出错要立刻看到，不跟着排队入场 */}
           <EmptyHeader>
             <EmptyMedia variant="icon" className="text-destructive">
               <TriangleAlertIcon />
@@ -85,7 +87,12 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
         </Empty>
       ) : entries.length === 0 ? (
         <Empty>
-          <EmptyHeader>
+          {/*
+            空状态分两块入场：先是图标 + 标题 + 说明，再是两个动作（规则见 globals.css
+            的 `.enter`）。Empty 的各部件会把 className / style 原样透传，所以不用改
+            vendored 的 empty.tsx。
+          */}
+          <EmptyHeader className="enter" style={enterAt(1)}>
             <EmptyMedia variant="icon">
               <SquarePenIcon />
             </EmptyMedia>
@@ -98,7 +105,7 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
               {fill(text.empty.description, { label: section.label })}
             </EmptyDescription>
           </EmptyHeader>
-          <EmptyContent>
+          <EmptyContent className="enter" style={enterAt(2)}>
             {/*
               唯一的动作不该是描边小按钮：它是全页仅有的视觉落点，所以用实心
               的 default（官方 example 的主动作也是实心）。
