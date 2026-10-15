@@ -1,3 +1,4 @@
+import { ArrowUpRightIcon } from "lucide-react";
 import { SiteLinkList, iconOf } from "@/components/layout/site-links";
 import { authorLinks, repoUrl, siteConfig } from "@/config/site";
 import { enterAt } from "@/lib/enter";
@@ -9,7 +10,7 @@ import { fill } from "@/lib/template";
  * 名字（h1）**刻意不参与入场动画**：标题一上来就在，随后正文自上而下浮现 —— 层次
  * 是"标题定住、内容进场"，整体不显得整页在动。
  *
- * 正文依次是首段自我介绍、「在做」（短标签 + 说明，项目名渲染成内联小标签）、
+ * 正文依次是首段自我介绍、「在做」（一个项目一行：项目名 badge + 一句话描述）、
  * 最后是「找我」那一行联系方式。分区不在这里再列一遍：顶栏导航已经把它们全列出来了。
  *
  * **出场顺序 = 排版顺序**：每一块挂上 `.enter` 并用 `enterAt()` 给出自己的序号
@@ -25,13 +26,13 @@ const VALUES = { author: siteConfig.author.name };
 
 /**
  * 出场序号：**从 1 起**（第一块也停一拍再出现），顺序是
- * 首段 1 → 「在做」引子 2 → 每条 3… →「找我」引子 → 联系方式那一行。
- * 大标题不在序号里 —— 它不参与动画。`.enter` 最多等 8 拍：「在做」条目多到
- * 总块数超过 8 时，超出的几块会一起出来。
+ * 首段 1 → 「在做」引子 2 → 每个项目 3… →「找我」引子 → 联系方式那一行。
+ * 大标题不在序号里 —— 它不参与动画。`.enter` 最多等 8 拍：项目多到总块数
+ * 超过 8 时，超出的几块会一起出来。
  */
 const INTRO_STAGE = 1;
 const DOING_STAGE = 2;
-/** 「在做」占 1 块引子 + 每条 1 块，「找我」的引子紧随其后 */
+/** 「在做」占 1 块引子 + 每个项目 1 块，「找我」的引子紧随其后 */
 const CONTACT_STAGE = DOING_STAGE + 1 + text.doing.items.length;
 
 export default function Home() {
@@ -51,37 +52,49 @@ export default function Home() {
           {fill(text.intro, VALUES)}
         </p>
 
-        {/* 「在做」：一条一行，短标签中黑，项目名是句子里的内联小标签 */}
-        <div className="space-y-1">
+        {/*
+          「在做」：一个项目一行 —— 左边项目名 badge（点进去是仓库），右边一句话描述；
+          项目与描述都来自配置（text.doing.items）。
+
+          宽屏两栏对齐：<ul> 是两栏网格（badge 那栏按最长的名字定宽），每个 <li> 用
+          subgrid 跨两栏 —— 描述的左边缘对齐成一条线、长了只在右栏里折行，而每一行
+          仍是一个整块，能挂 `.enter`。窄屏放不下两栏，就 badge 在上、描述在下。
+        */}
+        <div className="space-y-3">
           <p className="enter" style={enterAt(DOING_STAGE)}>
-            {text.doing.title}：
+            {text.doing.title}
           </p>
-          {text.doing.items.map((item, index) => (
-            <p
-              key={item.label}
-              className="enter"
-              style={enterAt(DOING_STAGE + 1 + index)}
-            >
-              <span className="font-medium">{item.label}</span>
-              {item.text ? `：${item.text}` : null}
-              {/*
-                内联小标签用的是和 SiteLinkList 同一套「新窗口 + rel」的处理，
-                但它是正文里的一句话，套不了 <ul>/<li>，所以直接写 <a>。
-              */}
-              {item.repos?.map((repo) => (
+          <ul className="grid gap-y-3 sm:grid-cols-[max-content_1fr] sm:gap-x-4 sm:gap-y-2">
+            {text.doing.items.map((project, index) => (
+              <li
+                key={project.repo}
+                className="enter sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-baseline"
+                style={enterAt(DOING_STAGE + 1 + index)}
+              >
+                {/*
+                  badge 就是链接，和 SiteLinkList 同一套「新窗口 + rel」；但每行右边还有
+                  描述，套不进 SiteLinkList，所以直接写 <a>。
+
+                  是灰底小标签而不是按钮 —— 按钮的样子只给「全页唯一的动作」（见分区页
+                  的空状态）。看得出能点靠两样：名字后面的 ↗（和空状态「去 GitHub 写一条」
+                  同一个图标），以及悬停底色 `muted-hover`（见 globals.css）。
+
+                  `justify-self-start`：网格里的格子默认撑满栏宽，不加的话短名字的 badge
+                  会被拉得和最长的那个一样宽。
+                */}
                 <a
-                  key={repo}
-                  href={repoUrl(repo)}
+                  href={repoUrl(project.repo)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mx-1 inline-block rounded bg-muted px-1.5 py-0.5 text-sm leading-5 whitespace-nowrap transition-colors hover:bg-accent"
+                  className="group inline-flex items-center gap-0.5 justify-self-start rounded bg-muted px-1.5 py-0.5 text-sm leading-5 whitespace-nowrap transition-colors hover:bg-muted-hover"
                 >
-                  {repo}
+                  {project.repo}
+                  <ArrowUpRightIcon className="size-3.5 text-muted-foreground transition-colors group-hover:text-foreground" />
                 </a>
-              ))}
-              {item.after}
-            </p>
-          ))}
+                <p className="mt-1 sm:mt-0">{project.text}</p>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/*
