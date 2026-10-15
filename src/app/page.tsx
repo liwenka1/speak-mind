@@ -1,6 +1,6 @@
-import type { CSSProperties } from "react";
 import { SiteLinkList, iconOf } from "@/components/layout/site-links";
 import { authorLinks, repoUrl, siteConfig } from "@/config/site";
+import { enterAt } from "@/lib/enter";
 import { fill } from "@/lib/template";
 
 /**
@@ -12,8 +12,9 @@ import { fill } from "@/lib/template";
  * 正文依次是首段自我介绍、「在做」（短标签 + 说明，项目名渲染成内联小标签）、
  * 最后是「找我」那一行联系方式。分区不在这里再列一遍：顶栏导航已经把它们全列出来了。
  *
- * **出场顺序 = 排版顺序**：每一块挂上 `.enter` 并给出自己的序号（延时 `序号 × 90ms`，
- * 规则见 globals.css）。纯 CSS，服务端渲染就带上了，不需要客户端组件。
+ * **出场顺序 = 排版顺序**：每一块挂上 `.enter` 并用 `enterAt()` 给出自己的序号
+ * （延时 `序号 × 90ms`，规则见 globals.css）。纯 CSS，服务端渲染就带上了，不需要
+ * 客户端组件。
  *
  * 句子全部来自 siteConfig.text.home，这里不写死文案。
  */
@@ -25,17 +26,13 @@ const VALUES = { author: siteConfig.author.name };
 /**
  * 出场序号：**从 1 起**（第一块也停一拍再出现），顺序是
  * 首段 1 → 「在做」引子 2 → 每条 3… →「找我」引子 → 联系方式那一行。
- * 大标题不在序号里 —— 它不参与动画。
+ * 大标题不在序号里 —— 它不参与动画。`.enter` 最多等 8 拍：「在做」条目多到
+ * 总块数超过 8 时，超出的几块会一起出来。
  */
 const INTRO_STAGE = 1;
 const DOING_STAGE = 2;
 /** 「在做」占 1 块引子 + 每条 1 块，「找我」的引子紧随其后 */
 const CONTACT_STAGE = DOING_STAGE + 1 + text.doing.items.length;
-
-/** 第 `stage` 块入场：`--i` 决定它晚多久出现（见 globals.css 的 `.enter`） */
-function enterAt(stage: number): CSSProperties {
-  return { "--i": stage } as CSSProperties;
-}
 
 export default function Home() {
   const { name } = siteConfig.author;

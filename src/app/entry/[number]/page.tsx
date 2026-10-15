@@ -13,6 +13,7 @@ import { formatDate } from "@/lib/format";
 import { Markdown } from "@/components/entry/markdown";
 import { CommentList } from "@/components/entry/comment-list";
 import { sectionPath, sectionsOf, siteConfig } from "@/config/site";
+import { enterAt } from "@/lib/enter";
 import { fill } from "@/lib/template";
 
 /** 与数据层一致的缓存时长；字面量，便于 Next.js 静态分析。 */
@@ -119,12 +120,17 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             href={siteConfig.pages.home.href}
             label={siteConfig.pages.home.title}
           />
+          {/* 报错不挂 `.enter`：出错要立刻看到，不跟着排队入场 */}
           <p className="mt-10 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             {fill(text.error, { error: errorMessage })}
           </p>
         </>
       ) : entry ? (
         <article>
+          {/*
+            标题区（返回入口 + 标题 + 日期）不挂 `.enter`：标题定住，下面的正文与
+            评论区再依次浮现（同首页，规则见 globals.css）。
+          */}
           <header>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               {sections.map((section) => (
@@ -147,7 +153,12 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             </time>
           </header>
 
-          <div className="mt-8">
+          {/*
+            正文**整块**入场，不按段落拆：段落是 react-markdown 生成的，拆开得改它的
+            组件映射；长文的大部分段落又在首屏以下，错开了也没人看得见。它是这页的
+            主体，所以排第 1 拍，不往后放。
+          */}
+          <div className="enter mt-8" style={enterAt(1)}>
             {entry.body ? (
               <Markdown content={entry.body} />
             ) : (
@@ -155,8 +166,16 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             )}
           </div>
 
-          {/* 评论区：站内只展示，不能在这里发 —— 底部留一个入口回 GitHub */}
-          <section className="mt-16 border-t border-border pt-8">
+          {/*
+            评论区：站内只展示，不能在这里发 —— 底部留一个入口回 GitHub。
+
+            入场排在正文后面（第 2 拍）。长文时它在屏幕外，动画早就播完了；但短内容
+            （比如「三言两语」）的评论区就在首屏，不挂就成了"正文在浮、评论区早就在那"。
+          */}
+          <section
+            className="enter mt-16 border-t border-border pt-8"
+            style={enterAt(2)}
+          >
             <h2 className="text-sm font-medium text-muted-foreground">
               {comments.length > 0
                 ? fill(text.comments.title, { count: comments.length })

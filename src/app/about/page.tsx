@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
+import { enterAt } from "@/lib/enter";
 import { fill } from "@/lib/template";
 
 /** 页面文案里 `{author}` 的值：meta description 与正文段落共用同一份 */
@@ -14,7 +15,12 @@ export const metadata: Metadata = {
   }),
 };
 
-/** 关于页：正文段落全部来自 siteConfig.text.about，里面的 `{author}` 在这里填 */
+/**
+ * 关于页：正文段落全部来自 siteConfig.text.about，里面的 `{author}` 在这里填。
+ *
+ * 段落自上而下逐个浮现（同首页，规则见 globals.css 的 `.enter`）：首段 1，后续段落
+ * 依次往下数。这页没有可见的大标题 —— 顶栏里高亮的「关于」就是那个不动的部分。
+ */
 export default function AboutPage() {
   const text = siteConfig.text.about;
 
@@ -27,9 +33,15 @@ export default function AboutPage() {
       <h1 className="sr-only">{siteConfig.pages.about.title}</h1>
 
       <div className="space-y-4">
-        <p>{fill(text.lead, AUTHOR_VALUES)}</p>
-        {text.paragraphs.map((paragraph) => (
-          <p key={paragraph} className="text-muted-foreground">
+        <p className="enter" style={enterAt(1)}>
+          {fill(text.lead, AUTHOR_VALUES)}
+        </p>
+        {text.paragraphs.map((paragraph, index) => (
+          <p
+            key={paragraph}
+            className="enter text-muted-foreground"
+            style={enterAt(2 + index)}
+          >
             {fill(paragraph, AUTHOR_VALUES)}
           </p>
         ))}
