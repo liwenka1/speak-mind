@@ -52,23 +52,17 @@ export type SiteSection = {
 };
 
 /**
- * 首页「在做」里的一条：短标签 + 说明，说明后面可以跟几个仓库小标签。
+ * 首页「在做」里的一个项目：一行一个，左边是项目名 badge（点进去是仓库），
+ * 右边一句话描述。
  *
- * 拆成结构化字段（而不是一整句自由文本）是为了让项目名能被渲染成小标签；
- * 句子照样只写在配置里，组件只管排版。
+ * 项目与描述都只写在配置里，组件只管排版；地址也不写 —— 只写**仓库名**，
+ * 地址由 `github.user` 推导（见 `repoUrl()`）。
  */
-type HomeDoingItem = {
-  /** 短标签（中黑显示，后面自动跟一个「：」） */
-  label: string;
-  /** 说明文字；这一条只有仓库小标签时可以不写 */
-  text?: string;
-  /**
-   * 跟在后面的仓库小标签 —— 只写**仓库名**，地址由 `github.user` 推导
-   * （见 `repoUrl()`），不要在配置里手写完整地址。
-   */
-  repos?: string[];
-  /** 小标签之后再接的一段文字（如「，GitHub 累计 340+ stars」） */
-  after?: string;
+type HomeProject = {
+  /** 仓库名：badge 上显示的就是它 */
+  repo: string;
+  /** 一句话描述（桌面端一行大约放得下 30 个字，再长会在右栏里折行） */
+  text: string;
 };
 
 type SiteConfig = {
@@ -139,9 +133,10 @@ type SiteConfig = {
       intro: string;
       /** 「在做」那一段 */
       doing: {
-        /** 段落引子（渲染成「在做：」），后面接 items 里的几条 */
+        /** 引子（「在做」，和「找我」一样不带冒号），下面是 items 里的项目 */
         title: string;
-        items: HomeDoingItem[];
+        /** 项目，按这里的顺序从上往下排 */
+        items: HomeProject[];
       };
       /**
        * 「找我」：只有引子 —— 下面那一行联系方式（GitHub / 邮箱 / 其他平台）
@@ -281,22 +276,29 @@ export const siteConfig: SiteConfig = {
   text: {
     home: {
       intro:
-        "嗨，我是 {author}，一名软件工程师 和 开源爱好者。",
+        "嗨，我是 {author}，一名软件工程师 和 开源爱好者，GitHub 累计 340+ stars。",
       doing: {
         title: "在做",
         items: [
           {
-            label: "写代码",
-            text: "前端为主（React / Next.js + TypeScript），也写过一点后端（Node.js / NestJS / Prisma）",
+            repo: "next-web-nav",
+            text: "一个简单好用的导航网站",
           },
           {
-            label: "做开源",
-            repos: ["next-web-nav", "vven-tools", "video-to-ppt"],
-            after: "，GitHub 累计 340+ stars",
+            repo: "bongo-cat-next",
+            text: "现代化桌面宠物应用，可爱 Live2D 猫咪陪伴编程",
           },
           {
-            label: "写东西",
-            text: "先在 GitHub Issues 里写，打上分区标签就发布到这个站",
+            repo: "zhiyuan",
+            text: "本地优先的 Markdown 工作台",
+          },
+          {
+            repo: "deep-code",
+            text: "基于 DeepSeek 的终端 AI 编程助手",
+          },
+          {
+            repo: "video-to-ppt",
+            text: "基于 WebAV 和 FFmpeg 的现代化视频分析与 PPT 生成工具，支持屏幕录制、本地视频处理和在线视频分析",
           },
         ],
       },
@@ -366,7 +368,7 @@ export function githubUrl(): string {
   return `https://github.com/${siteConfig.github.user}`;
 }
 
-/** 某个仓库的地址（由 github.user 推导）；首页「在做」里的仓库小标签用 */
+/** 某个仓库的地址（由 github.user 推导）；首页「在做」里的项目 badge 用 */
 export function repoUrl(repo: string): string {
   return `https://github.com/${siteConfig.github.user}/${repo}`;
 }

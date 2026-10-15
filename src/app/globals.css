@@ -90,6 +90,12 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  /*
+    灰底小标签（首页「在做」的项目 badge）的悬停底色：从 muted 往前景色挪 10% ——
+    浅色下变深、深色下变浅，两边都是"更显眼"。不用 accent：这套主题里 accent 与
+    muted 是同一个色值，`hover:bg-accent` 等于没变。
+  */
+  --color-muted-hover: color-mix(in oklch, var(--muted), var(--foreground) 10%);
   --color-border: var(--border);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
