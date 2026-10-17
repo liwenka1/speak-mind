@@ -17,6 +17,7 @@ timeZone: "Asia/Shanghai",   // 日期显示的时区
 description: "{author} 的个人站：…",   // 首页的 meta description，可用占位符
 author: {
   name: "VVenKAI",           // 首页大标题（h1）就是它
+  motto: "Better Late than Never", // 首页名字下面那行（Playfair 真斜体）；留空则不显示
   email: "2020583117@qq.com",// 填了就出现在首页「找我」与顶栏
   links: [                   // 其他平台外链；GitHub 主页不用写这里
     { label: "X", href: "https://x.com/liwenka1" },
@@ -67,7 +68,7 @@ text: {                    // 页面文案，按页面分组
 文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{author}` 作者显示名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
 
 - 导航结构是 **分区 + 关于**：分区来自 `sections`，末项来自 `pages.about`；**没有「首页」** —— 左上角的站标就是回首页的入口，同一件事不必说两遍。
-- **首页是「一行名字 + 几段正文」**：`<h1>` 是 `author.name`，它**不参与入场动画**（一进来就在，动的是下面的正文）；紧接着是首段（`intro`）、「在做」那一段（`doing.items`：**一个项目一行** —— 左边是项目名 badge，带 ↗、点进去是仓库，地址由 `repoUrl()` 推导；右边一句话描述。宽屏上描述左对齐成一栏、长了只在右栏里折行，窄屏 badge 在上、描述在下。badge 是灰底小标签而不是按钮，悬停底色用 `globals.css` 里的 `muted-hover` —— 这套主题的 accent 与 muted 同值，`hover:bg-accent` 等于没变）、以及「找我」——**就一行**「图标 + 文字」，内容与顺序都直接来自 `authorLinks()`（和顶栏同一份：GitHub / 邮箱 / 其他平台，邮箱的名在 `author.email` 里）。首页不重复列分区。
+- **首页是「一行名字 + 几段正文」**：`<h1>` 是 `author.name`，紧贴着它的一行是座右铭 `author.motto`（Playfair 真斜体、浅色，留空则不显示）—— 这两行**不参与入场动画**（一进来就在，动的是下面的正文）；接着是首段（`intro`）、「在做」那一段（`doing.items`：**一个项目一行** —— 左边是项目名 badge，带 ↗、点进去是仓库，地址由 `repoUrl()` 推导；右边一句话描述。宽屏上描述左对齐成一栏、长了只在右栏里折行，窄屏 badge 在上、描述在下。badge 是灰底小标签而不是按钮，悬停底色用 `globals.css` 里的 `muted-hover` —— 这套主题的 accent 与 muted 同值，`hover:bg-accent` 等于没变）、以及「找我」——**就一行**「图标 + 文字」，内容与顺序都直接来自 `authorLinks()`（和顶栏同一份：GitHub / 邮箱 / 其他平台，邮箱的名在 `author.email` 里）。首页不重复列分区。
 - **入场动画是纯 CSS**：页面内容自上而下逐个浮现 —— 每块挂 `.enter` 并用 `style={enterAt(n)}`（[`src/lib/enter.ts`](src/lib/enter.ts)）给出序号，延时 `n × 90ms`、时长 `1s`、缓动 `ease`，序号**从 1 起**（第一块也停一拍再出现），**最多等 8 拍**（超过的一起出来，长列表不会越往下越晚）；规则与这四个数都写在 `globals.css` 里。用在首页正文、关于页的段落、分区列表的每一条（空状态分两块）、详情页的正文（整块）与评论区。**框架与标题不动**：顶栏页脚、首页的名字与详情页的标题、报错都不挂。动画在元素挂载时播放，所以每次进入页面（包括从文章返回列表）都会重播；`prefers-reduced-motion` 与打印时整段关掉。零 JS，不引入客户端组件。
 - **顶栏与页脚不做「工具条 + 分隔线」**：顶栏**全宽、两侧分布** —— 左上角是**站标**（手画的「wk」连写，一笔到底，会自己写一遍再擦掉，见 [`site-logo.tsx`](src/components/layout/site-logo.tsx) 与 `globals.css` 里的 `.site-logo path`），导航 / 联系方式 / 主题切换贴页面右边，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上顶栏是张开的；没有背景、没有下边框、也不 sticky（跟内容一起滚走）。页脚只有一行版权，外链不在页脚重复。右侧所有条目**共用同一套间距与 hover**：60% 透明、hover 到 100%，没有底色也没有边框 —— 图标按钮看起来就该像旁边那些分区链接，而不是一排控件（所以联系方式是 `<a>` 直接加类名、主题切换用原生 `<button>`，**都不用 shadcn 的 `Button`**：套上既会被 Base UI 加上 `role="button"`，ghost 那身皮也和「像 tag」冲突）。联系方式图标只看地址（`mailto:` / GitHub 主页 / x.com，认不出来给通用链接图标），可访问名与悬停提示仍取配置里的标签，窄屏只藏掉这一组（首页「找我」里另有完整的一行）。图标统一走 [`src/components/icons/remix.tsx`](src/components/icons/remix.tsx)：**Remix Icon**（Apache-2.0）的 `-line` 变体 —— GitHub / 邮箱 / X / 太阳 / 月亮在一个集合里就齐了，笔画一致；只内置用到的那几个路径，不装整套图标库。顶栏不放「源码」链接（`links.source` 已删除）；`repoUrl()` 只服务首页「在做」里的项目 badge，别处要放地址也别手写（见下面「去重规则」）。
 - **标签页图标**与顶栏标记**共用同一份路径数据**（[`site-logo.tsx`](src/components/layout/site-logo.tsx) 里的 `SITE_LOGO_PATH`）：由 [`src/app/icon/route.ts`](src/app/icon/route.ts) 生成到 `/icon` —— 笔画 4.5（`/icon` 而不是 `/icon.svg` 是因为目录名撞上了 Next 的元数据文件约定，所以根布局里要显式写 `metadata.icons`），不做动画，并按 `prefers-color-scheme` 在深浅两色间切换（favicon 只能跟系统的明暗，跟不了站内的 `.dark` 类）。
@@ -192,4 +193,4 @@ pnpm dev
 
 打开 <http://localhost:3000> 即可（本项目用 pnpm，锁文件是 `pnpm-lock.yaml`）。
 
-字体通过 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 加载：标题用 Playfair Display（衬线），正文用 Noto Sans，中文会自动回退到系统字体（宋体 / 黑体）。中文字体栈（`--font-heading-cjk`、`html` 的 `font-family`）都定义在 `globals.css` —— 注意 Tailwind 的 `font-sans` / `font-heading` / `font-mono` 工具类**只有拉丁字形**（`@theme inline` 内联的是 next/font 的表达式，不含中文兜底），所以带中文的元素要靠继承，或像 EmptyTitle 那样在 `globals.css` 里补栈。
+字体通过 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 加载：标题用 Playfair Display（衬线），正文用 Noto Sans，中文会自动回退到系统字体（宋体 / 黑体）。首页座右铭用的 Playfair **斜体**只在 [`src/app/page.tsx`](src/app/page.tsx) 里声明 —— next/font 在哪个文件调用就只在那条路由上预加载，放进根布局会让每个页面都多预加载一个只有首页用得上的斜体文件；根布局那份 Playfair 只有正体，所以别处写 `italic` 只会得到浏览器硬掰的假斜体。中文字体栈（`--font-heading-cjk`、`html` 的 `font-family`）都定义在 `globals.css` —— 注意 Tailwind 的 `font-sans` / `font-heading` / `font-mono` 工具类**只有拉丁字形**（`@theme inline` 内联的是 next/font 的表达式，不含中文兜底），所以带中文的元素要靠继承，或像 EmptyTitle 那样在 `globals.css` 里补栈。
