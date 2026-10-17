@@ -6,18 +6,15 @@ import { cn } from "@/lib/utils";
 import { sectionPath, siteConfig } from "@/config/site";
 
 /**
- * 导航 = 配置里的分区 + 关于（文案与路径都来自 siteConfig）。
+ * 导航 = 配置里的分区（文案与路径都来自 siteConfig）。
  *
  * **没有「首页」**：左上角的站标就是回首页的入口，一行导航里再写一个「首页」，
- * 只是把同一件事说两遍。
+ * 只是把同一件事说两遍。也**没有「关于」**：首页本身就是自我介绍。
  */
-const NAV_ITEMS = [
-  ...siteConfig.sections.map((section) => ({
-    href: sectionPath(section.label),
-    label: section.title,
-  })),
-  { href: siteConfig.pages.about.href, label: siteConfig.pages.about.title },
-];
+const NAV_ITEMS = siteConfig.sections.map((section) => ({
+  href: sectionPath(section.label),
+  label: section.title,
+}));
 
 export function SiteNav() {
   const pathname = usePathname();
