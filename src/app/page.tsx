@@ -91,7 +91,11 @@ export default function Home() {
           仍是一个整块，能挂 `.enter`。窄屏放不下两栏，就 badge 在上、描述在下。
         */}
         <div className="space-y-3">
-          <p className="enter" style={enterAt(DOING_STAGE)}>
+          {/* 引子是浅色：它只是给下面的内容起个头（「找我」同款） */}
+          <p
+            className="enter text-muted-foreground"
+            style={enterAt(DOING_STAGE)}
+          >
             {text.doing.title}
           </p>
           <ul className="grid gap-y-3 sm:grid-cols-[max-content_1fr] sm:gap-x-4 sm:gap-y-2">
@@ -130,17 +134,30 @@ export default function Home() {
         {/*
           「找我」就一行：图标 + 文字，内容与顺序都直接来自 authorLinks() ——
           和右上角是同一份，所以两处永远不会走散（要改顺序就改配置）。
+
+          每个链接是「浅色图标 + 实色文字 + 底下一条细线」，悬停时**只有那条线**变实，
+          图标和文字都不动。不用顶栏那套 60% 透明：顶栏是一排安静的入口，这里是正文里
+          的链接，字得看得清；能点靠那条线来提示。图标仍是顶栏同一套 Remix 线性图标
+          （见 iconOf）。
+
+          线的变化是 300ms 的渐变，曲线用 CSS 的 `ease-in-out` 关键字（与参考的
+          antfu.me 一致）。别换成 Tailwind 的 `ease-in-out` 类：它其实是
+          `cubic-bezier(0.4, 0, 0.2, 1)`，前 150ms 就走完八成，看着还是像直接跳过去；
+          CSS 关键字是前后对称的，变化均匀铺满 300ms。
         */}
         <div className="space-y-3">
-          <p className="enter" style={enterAt(CONTACT_STAGE)}>
+          <p
+            className="enter text-muted-foreground"
+            style={enterAt(CONTACT_STAGE)}
+          >
             {text.contact.title}
           </p>
           {/* 让包着 <ul> 的这层入场：SiteLinkList 不必知道有动画这回事 */}
           <div className="enter" style={enterAt(CONTACT_STAGE + 1)}>
             <SiteLinkList
               links={authorLinks()}
-              className="flex flex-wrap items-center gap-x-5 gap-y-2"
-              linkClassName="inline-flex items-center gap-1.5 opacity-60 transition-opacity hover:opacity-100"
+              className="flex flex-wrap items-center gap-x-4 gap-y-3"
+              linkClassName="inline-flex items-center gap-1.5 border-b border-border transition-colors duration-300 ease-[ease-in-out] hover:border-foreground [&_svg]:text-muted-foreground"
               renderIcon={iconOf}
               showLabel
             />
