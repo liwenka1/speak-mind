@@ -79,6 +79,8 @@ type SiteConfig = {
   author: {
     /** 显示名：首页的大标题（h1）就是它，`{author}` 占位符也填这个值 */
     name: string;
+    /** 座右铭：首页名字下面那一行（Playfair 真斜体、浅色）；留空则不显示 */
+    motto: string;
     /** 邮箱：填了就出现在首页「找我」那一行与顶栏；留空则不显示 */
     email: string;
     /**
@@ -249,6 +251,7 @@ export const siteConfig: SiteConfig = {
 
   author: {
     name: "VVenKAI",
+    motto: "Better Late than Never",
     email: "2020583117@qq.com",
     // GitHub 主页不写这里，见下面的 github 配置
     links: [
@@ -276,7 +279,7 @@ export const siteConfig: SiteConfig = {
   text: {
     home: {
       intro:
-        "嗨，我是 {author}，一名软件工程师 和 开源爱好者，GitHub 累计 340+ stars。",
+        "嗨，我是 {author}，软件工程师 和 开源爱好者。",
       doing: {
         title: "在做",
         items: [

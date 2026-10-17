@@ -1,14 +1,16 @@
+import { Playfair_Display } from "next/font/google";
 import { ArrowUpRightIcon } from "lucide-react";
 import { SiteLinkList, iconOf } from "@/components/layout/site-links";
 import { authorLinks, repoUrl, siteConfig } from "@/config/site";
 import { enterAt } from "@/lib/enter";
 import { fill } from "@/lib/template";
+import { cn } from "@/lib/utils";
 
 /**
- * 首页：一个居中的窄列，**上面一行是名字，下面全是正文段落**。
+ * 首页：一个居中的窄列，**上面是名字和一句座右铭，下面全是正文段落**。
  *
- * 名字（h1）**刻意不参与入场动画**：标题一上来就在，随后正文自上而下浮现 —— 层次
- * 是"标题定住、内容进场"，整体不显得整页在动。
+ * 名字（h1）与座右铭**刻意不参与入场动画**：标题一上来就在，随后正文自上而下浮现
+ * —— 层次是"标题定住、内容进场"，整体不显得整页在动。
  *
  * 正文依次是首段自我介绍、「在做」（一个项目一行：项目名 badge + 一句话描述）、
  * 最后是「找我」那一行联系方式。分区不在这里再列一遍：顶栏导航已经把它们全列出来了。
@@ -35,8 +37,22 @@ const DOING_STAGE = 2;
 /** 「在做」占 1 块引子 + 每个项目 1 块，「找我」的引子紧随其后 */
 const CONTACT_STAGE = DOING_STAGE + 1 + text.doing.items.length;
 
+/**
+ * 座右铭用的 **Playfair Display 真斜体**。
+ *
+ * 根布局里那份 Playfair 只有正体；不另外加载斜体的话，`italic` 只会让浏览器把正体
+ * 硬掰斜（faux italic）—— Playfair 的斜体是另画的一套字形，掰出来的差一截。
+ *
+ * **只在这一页声明**：next/font 在哪个文件里调用，就只在对应的路由上预加载。放进根布局
+ * 的话，每个页面都会多预加载一个只有首页用得上的斜体文件。
+ */
+const playfairItalic = Playfair_Display({
+  subsets: ["latin"],
+  style: "italic",
+});
+
 export default function Home() {
-  const { name } = siteConfig.author;
+  const { name, motto } = siteConfig.author;
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
@@ -46,6 +62,20 @@ export default function Home() {
         标题字体由 globals.css 里 h1–h6 那条规则统一给（含中文兜底）。
       */}
       <h1 className="text-3xl font-semibold tracking-tight">{name}</h1>
+      {/*
+        座右铭紧贴着名字，和名字算同一块 —— 同样**不挂 `.enter`**：名字和这句一起先在，
+        下面的正文再逐个浮现。文案来自 author.motto，留空就不渲染这一行。
+      */}
+      {motto ? (
+        <p
+          className={cn(
+            playfairItalic.className,
+            "mt-2 text-lg text-muted-foreground italic",
+          )}
+        >
+          {motto}
+        </p>
+      ) : null}
 
       <article className="mt-8 space-y-6">
         <p className="enter" style={enterAt(INTRO_STAGE)}>
