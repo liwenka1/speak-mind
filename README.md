@@ -26,7 +26,6 @@ author: {
 github: { user: "liwenka1", repo: "speak-mind" },  // 个人主页与仓库地址都由它推导
 pages: {
   home: { href: "/", title: "首页" },
-  about: { href: "/about", title: "关于" },
 },
 sections: [
   { title: "日记", label: "diary" },
@@ -46,14 +45,13 @@ text: {                    // 页面文案，按页面分组
     },
     contact: { title: "找我" },   // 下面那一行联系方式来自 authorLinks()
   },
-  about: { description: "{title} {name}", lead: "…", paragraphs: ["…"] },
   section: {               // 分区列表页
     description: "{name} 的{title}",
     empty: {               // 没有内容时渲染空状态（shadcn 的 Empty 组件）
       title: "还没有内容",
       description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
       action: "去 GitHub 写一条",   // 主按钮：跳到新建 issue，标签已预填
-      guide: "这个站是怎么运作的",  // 次级文字链：去关于页
+      guide: "这个站是怎么运作的",  // 次级文字链：去本仓库的 GitHub 页（README）
     },
     error: "暂时读不到内容：{error}",   // 读取失败时也用 Empty 渲染
   },
@@ -67,24 +65,23 @@ text: {                    // 页面文案，按页面分组
 
 文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{author}` 作者显示名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
 
-- 导航结构是 **分区 + 关于**：分区来自 `sections`，末项来自 `pages.about`；**没有「首页」** —— 左上角的站标就是回首页的入口，同一件事不必说两遍。
+- 导航**只有分区**（来自 `sections`）：**没有「首页」** —— 左上角的站标就是回首页的入口，同一件事不必说两遍；**也没有「关于」** —— 首页本身就是自我介绍，旧的 `/about` 在 [`next.config.ts`](next.config.ts) 里永久重定向（308）到首页，分享出去的链接不会 404。
 - **首页是「一行名字 + 几段正文」**：`<h1>` 是 `author.name`，紧贴着它的一行是座右铭 `author.motto`（Playfair 真斜体、浅色，留空则不显示）—— 这两行**不参与入场动画**（一进来就在，动的是下面的正文）；接着是首段（`intro`）、「在做」那一段（`doing.items`：**一个项目一行** —— 左边是项目名 badge，带 ↗、点进去是仓库，地址由 `repoUrl()` 推导；右边一句话描述。宽屏上描述左对齐成一栏、长了只在右栏里折行，窄屏 badge 在上、描述在下。badge 是灰底小标签而不是按钮，悬停底色用 `globals.css` 里的 `muted-hover` —— 这套主题的 accent 与 muted 同值，`hover:bg-accent` 等于没变）、以及「找我」——**就一行**「图标 + 文字」，内容与顺序都直接来自 `authorLinks()`（和顶栏同一份：GitHub / 邮箱 / 其他平台，邮箱的名在 `author.email` 里）；每个链接是浅色图标 + 实色文字 + 底下一条细线，悬停时只有那条线用 300ms 渐变成实色、图标和文字都不动（不用顶栏那套 60% 透明：这里是正文里的链接，字得看得清）。「在做」「找我」这两个引子都是浅色。首页不重复列分区。
-- **入场动画是纯 CSS**：页面内容自上而下逐个浮现 —— 每块挂 `.enter` 并用 `style={enterAt(n)}`（[`src/lib/enter.ts`](src/lib/enter.ts)）给出序号，延时 `n × 90ms`、时长 `1s`、缓动 `ease`，序号**从 1 起**（第一块也停一拍再出现），**最多等 8 拍**（超过的一起出来，长列表不会越往下越晚）；规则与这四个数都写在 `globals.css` 里。用在首页正文、关于页的段落、分区列表的每一条（空状态分两块）、详情页的正文（整块）与评论区。**框架与标题不动**：顶栏页脚、首页的名字与详情页的标题、报错都不挂。动画在元素挂载时播放，所以每次进入页面（包括从文章返回列表）都会重播；`prefers-reduced-motion` 与打印时整段关掉。零 JS，不引入客户端组件。
-- **顶栏与页脚不做「工具条 + 分隔线」**：顶栏**全宽、两侧分布** —— 左上角是**站标**（手画的「wk」连写，一笔到底，会自己写一遍再擦掉，见 [`site-logo.tsx`](src/components/layout/site-logo.tsx) 与 `globals.css` 里的 `.site-logo path`），导航 / 联系方式 / 主题切换贴页面右边，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上顶栏是张开的；没有背景、没有下边框、也不 sticky（跟内容一起滚走）。页脚只有一行版权，外链不在页脚重复。右侧所有条目**共用同一套间距与 hover**：60% 透明、hover 到 100%，没有底色也没有边框 —— 图标按钮看起来就该像旁边那些分区链接，而不是一排控件（所以联系方式是 `<a>` 直接加类名、主题切换用原生 `<button>`，**都不用 shadcn 的 `Button`**：套上既会被 Base UI 加上 `role="button"`，ghost 那身皮也和「像 tag」冲突）。联系方式图标只看地址（`mailto:` / GitHub 主页 / x.com，认不出来给通用链接图标），可访问名与悬停提示仍取配置里的标签，窄屏只藏掉这一组（首页「找我」里另有完整的一行）。图标统一走 [`src/components/icons/remix.tsx`](src/components/icons/remix.tsx)：**Remix Icon**（Apache-2.0）的 `-line` 变体 —— GitHub / 邮箱 / X / 太阳 / 月亮在一个集合里就齐了，笔画一致；只内置用到的那几个路径，不装整套图标库。顶栏不放「源码」链接（`links.source` 已删除）；`repoUrl()` 只服务首页「在做」里的项目 badge，别处要放地址也别手写（见下面「去重规则」）。
+- **入场动画是纯 CSS**：页面内容自上而下逐个浮现 —— 每块挂 `.enter` 并用 `style={enterAt(n)}`（[`src/lib/enter.ts`](src/lib/enter.ts)）给出序号，延时 `n × 90ms`、时长 `1s`、缓动 `ease`，序号**从 1 起**（第一块也停一拍再出现），**最多等 8 拍**（超过的一起出来，长列表不会越往下越晚）；规则与这四个数都写在 `globals.css` 里。用在首页正文、分区列表的每一条（空状态分两块）、详情页的正文（整块）与评论区。**框架与标题不动**：顶栏页脚、首页的名字与详情页的标题、报错都不挂。动画在元素挂载时播放，所以每次进入页面（包括从文章返回列表）都会重播；`prefers-reduced-motion` 与打印时整段关掉。零 JS，不引入客户端组件。
+- **顶栏与页脚不做「工具条 + 分隔线」**：顶栏**全宽、两侧分布** —— 左上角是**站标**（手画的「wk」连写，一笔到底，会自己写一遍再擦掉，见 [`site-logo.tsx`](src/components/layout/site-logo.tsx) 与 `globals.css` 里的 `.site-logo path`），导航 / 联系方式 / 主题切换贴页面右边，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上顶栏是张开的；没有背景、没有下边框、也不 sticky（跟内容一起滚走）。页脚只有一行版权，外链不在页脚重复。右侧所有条目**共用同一套间距与 hover**：60% 透明、hover 到 100%，没有底色也没有边框 —— 图标按钮看起来就该像旁边那些分区链接，而不是一排控件（所以联系方式是 `<a>` 直接加类名、主题切换用原生 `<button>`，**都不用 shadcn 的 `Button`**：套上既会被 Base UI 加上 `role="button"`，ghost 那身皮也和「像 tag」冲突）。联系方式图标只看地址（`mailto:` / GitHub 主页 / x.com，认不出来给通用链接图标），可访问名与悬停提示仍取配置里的标签，窄屏只藏掉这一组（首页「找我」里另有完整的一行）。图标统一走 [`src/components/icons/remix.tsx`](src/components/icons/remix.tsx)：**Remix Icon**（Apache-2.0）的 `-line` 变体 —— GitHub / 邮箱 / X / 太阳 / 月亮在一个集合里就齐了，笔画一致；只内置用到的那几个路径，不装整套图标库。顶栏不放「源码」链接（`links.source` 已删除）；`repoUrl()` 只服务首页「在做」里的项目 badge 和分区空状态里「这个站是怎么运作的」那条链接（指向本仓库），别处要放地址也别手写（见下面「去重规则」）。
 - **标签页图标**与顶栏标记**共用同一份路径数据**（[`site-logo.tsx`](src/components/layout/site-logo.tsx) 里的 `SITE_LOGO_PATH`）：由 [`src/app/icon/route.ts`](src/app/icon/route.ts) 生成到 `/icon` —— 笔画 4.5（`/icon` 而不是 `/icon.svg` 是因为目录名撞上了 Next 的元数据文件约定，所以根布局里要显式写 `metadata.icons`），不做动画，并按 `prefers-color-scheme` 在深浅两色间切换（favicon 只能跟系统的明暗，跟不了站内的 `.dark` 类）。
 - **日夜切换是从按钮扩散的**：点主题按钮时用 View Transitions 把整页快照成新旧两层，再让新层从一个圆放大到盖满视口 —— 圆心取按钮中心（不是鼠标坐标，键盘触发也一样），半径取到视口最远角，因此看着就是「从右上角扩散」。逻辑在 [`theme-toggle.tsx`](src/components/theme/theme-toggle.tsx)，伪元素那半规则在 `globals.css`；浏览器不支持 View Transitions（或系统开了「减弱动态效果」）时直接切主题，没有动画。
 - `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
 - 每个分区会自动生成一个静态页 `/tag/<label>`。
 - 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
-- 「关于」页正文按段配置：`lead` 是首段（正常字色），`paragraphs` 是后续段落（浅色），可增删。
-- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)），骨架照官方 Empty 的 example：图标 + 标题（`EmptyTitle`）+ 一行说明（`EmptyDescription`，`{label}` 是这个分区对应的 GitHub 标签名）+ 两个动作 —— 实心主按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导），下面一条次级文字链去关于页。**说明那行不能省**：空状态好看的本质是「留白 + 文字层次」，只剩一行标题时，中间那块留白就是没有信息的空洞。空状态不重复分区名、也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。
+- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)），骨架照官方 Empty 的 example：图标 + 标题（`EmptyTitle`）+ 一行说明（`EmptyDescription`，`{label}` 是这个分区对应的 GitHub 标签名）+ 两个动作 —— 实心主按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导），下面一条次级文字链去本仓库的 GitHub 页（README 就是这个站怎么运作的完整说明，新窗口打开）。**说明那行不能省**：空状态好看的本质是「留白 + 文字层次」，只剩一行标题时，中间那块留白就是没有信息的空洞。空状态不重复分区名、也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。
 
 ### 去重规则
 
 同一个**事实**只写一次，其他地方一律引用或推导：
 
 - **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、新建 issue（`newIssueUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
-- **名字不重抄**：页面名字写在 `pages` / `sections` 里，别处的文案要引用就写占位符（如关于页 description 的 `{title}`）。
+- **名字不重抄**：页面名字写在 `pages` / `sections` 里，别处的文案要引用就写占位符（如分区页 description 的 `{title}`）。
 - **显示名与 GitHub 用户名是两个事实**：`author.name`（`VVenKAI`）与 `github.user`（`liwenka1`）故意分开配置 —— 将来把显示名改成中文名，也不必动 GitHub 用户名，不要合并。
 - `lang` / `timeZone` 也同时供日期格式化使用（见 [`src/lib/format.ts`](src/lib/format.ts)），改一处全站生效。
 
@@ -114,7 +111,6 @@ text: {                    // 页面文案，按页面分组
 | `/` | 首页（名字 + 自我介绍 + 在做 + 找我） |
 | `/tag/<label>` | 分区列表 |
 | `/entry/<编号>` | 内容详情 |
-| `/about` | 关于 |
 
 > 页面名由顶栏导航的高亮承担，页面里不再重复一个大标题 —— 只有首页例外：它的 `<h1>` 就是 `author.name`（顶栏左上角是站标、没有字样，所以不算重复）。其余页面仍保留一个 `sr-only` 的 `<h1>` 给屏幕阅读器和文档大纲。内容详情页的 `<h1>` 是 issue 自己的标题，不属于重复，保留显示。
 

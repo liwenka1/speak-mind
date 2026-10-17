@@ -28,7 +28,7 @@ const geistMono = Geist_Mono({
  * 后缀由 template 自动补成「某某 · 站名」。
  *
  * description 里可以写 `{name}`（站名）与 `{author}`（作者显示名），在这里填一次；
- * 子页面要换成自己的 description 时自己填（见关于页）。
+ * 子页面要换成自己的 description 时自己填（见分区页）。
  */
 const SITE_VALUES = { name: siteConfig.name, author: siteConfig.author.name };
 

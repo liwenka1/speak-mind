@@ -36,7 +36,7 @@ export type SiteLink = {
   href: string;
 };
 
-/** 固定页面（首页 / 关于）：导航文案、页面标题、页内大标题共用同一份配置 */
+/** 固定页面（目前只有首页）：路径与显示名写在一处，链接、返回入口都引用它 */
 export type SitePage = {
   /** 路径 */
   href: string;
@@ -111,15 +111,15 @@ type SiteConfig = {
   };
 
   /**
-   * 固定页面。顶栏导航 = 下面 `sections` 里配置的分区 + 关于 —— **没有「首页」**：
-   * 左上角的站标就是回首页的入口，不占导航里的一格。
+   * 固定页面。顶栏导航只有下面 `sections` 里配置的分区 —— **没有「首页」**：
+   * 左上角的站标就是回首页的入口，不占导航里的一格；也**没有「关于」**：首页本身
+   * 就是自我介绍（旧的 /about 在 next.config.ts 里永久重定向到首页）。
    */
   pages: {
     home: SitePage;
-    about: SitePage;
   };
 
-  /** 中间的分区（首页与关于是固定的，不需要写在这里） */
+  /** 分区（首页是固定的，不需要写在这里） */
   sections: SiteSection[];
 
   /** 页面文案：改措辞只动这里 */
@@ -150,16 +150,6 @@ type SiteConfig = {
       };
     };
 
-    /** 关于页 */
-    about: {
-      /** 浏览器标签页上的描述；`{title}` 关于页标题、`{author}` 作者显示名 */
-      description: string;
-      /** 首段（正常字色）；`{author}` 也可以写在里面 */
-      lead: string;
-      /** 后续段落（浅色，可增删，一段一条）；同样支持 `{author}` */
-      paragraphs: string[];
-    };
-
     /** 分区列表页 /tag/<label> */
     section: {
       /** 浏览器标签页上的描述；`{name}` 站名、`{title}` 分区名 */
@@ -179,7 +169,7 @@ type SiteConfig = {
         description: string;
         /** 主按钮文案：点进 GitHub 新建 issue，分区标签已预填 */
         action: string;
-        /** 次级入口的文案（文字链）：去关于页看这个站是怎么运作的 */
+        /** 次级入口的文案（文字链）：去本仓库的 GitHub 页（README）看这个站是怎么运作的 */
         guide: string;
       };
       /** 读取失败时（也用 Empty 渲染）；`{error}` 是具体错误 */
@@ -267,7 +257,6 @@ export const siteConfig: SiteConfig = {
 
   pages: {
     home: { href: "/", title: "首页" },
-    about: { href: "/about", title: "关于" },
   },
 
   sections: [
@@ -308,16 +297,6 @@ export const siteConfig: SiteConfig = {
       contact: {
         title: "找我",
       },
-    },
-
-    about: {
-      description: "{title} {author} —— 前端开发、开源项目，以及这个站是怎么运作的。",
-      lead: "我是 {author}，前端开发为主，React / Next.js + TypeScript 是主力栈，平时也维护几个自己的开源小项目。",
-      paragraphs: [
-        "本行是前端：React / Next.js / Vue / Nuxt 都写过，工具链常用 Vite 与 Tailwind CSS；后端碰过一点 Node.js（NestJS、Prisma），部署多走 Vercel、Docker 与 Nginx。2017–2021 在湖南城市学院读的本科。",
-        "工作之外：周末的篮球场常客（自称急停跳投专业户），追番清单永远比 TODO 列表长，Steam 库存还在持续 +1。",
-        "本站用 Next.js 搭建，内容直接以 GitHub Issues 作为数据源：给 issue 打上对应分区的标签，它就会出现在相应页面里。",
-      ],
     },
 
     section: {
@@ -371,7 +350,10 @@ export function githubUrl(): string {
   return `https://github.com/${siteConfig.github.user}`;
 }
 
-/** 某个仓库的地址（由 github.user 推导）；首页「在做」里的项目 badge 用 */
+/**
+ * 某个仓库的地址（由 github.user 推导）：首页「在做」的项目 badge 用；分区空状态里
+ * 「这个站是怎么运作的」也用它指向本仓库（`repoUrl(siteConfig.github.repo)`）。
+ */
 export function repoUrl(repo: string): string {
   return `https://github.com/${siteConfig.github.user}/${repo}`;
 }
