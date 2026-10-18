@@ -1,6 +1,7 @@
 import { Playfair_Display } from "next/font/google";
 import { ArrowUpRightIcon } from "lucide-react";
 import { SiteLinkList, iconOf } from "@/components/layout/site-links";
+import { WillowBackground } from "@/components/willow/willow-background";
 import { authorLinks, repoUrl, siteConfig } from "@/config/site";
 import { enterAt } from "@/lib/enter";
 import { fill } from "@/lib/template";
@@ -18,6 +19,9 @@ import { cn } from "@/lib/utils";
  * **出场顺序 = 排版顺序**：每一块挂上 `.enter` 并用 `enterAt()` 给出自己的序号
  * （延时 `序号 × 90ms`，规则见 globals.css）。纯 CSS，服务端渲染就带上了，不需要
  * 客户端组件。
+ *
+ * 背景是一棵柳树（`WillowBackground`，只在首页）：先长出来，长完随风摆。它固定铺满视口、
+ * 压在正文下面，不占排版位置；想调手感改 `src/config/willow.ts`。
  *
  * 句子全部来自 siteConfig.text.home，这里不写死文案。
  */
@@ -56,6 +60,8 @@ export default function Home() {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
+      {/* 柳枝背景：fixed 铺满视口、压在正文下面，放在哪儿都不影响排版 */}
+      <WillowBackground />
       {/*
         大标题就是名字本身 —— 顶栏左上角是站标（没有字样），所以这里不是重复。
         它**不挂 `.enter`**：标题不动，正文才逐个浮现（否则整页一起动，反而糊）。
