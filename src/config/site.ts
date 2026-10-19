@@ -328,7 +328,7 @@ export const siteConfig: SiteConfig = {
 
     links: {
       github: "GitHub",
-      email: "邮箱",
+      email: "Email",
     },
 
     titleTemplate: "%s · {name}",

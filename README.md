@@ -57,7 +57,7 @@ text: {                    // 页面文案，按页面分组
   },
   entry: { … },            // 内容详情页的文案
   footer: { copyright: "© {year} {author}" },
-  links: { github: "GitHub", email: "邮箱" },  // 推导链接的显示名
+  links: { github: "GitHub", email: "Email" },  // 推导链接的显示名
   titleTemplate: "%s · {name}",
   theme: { … }, common: { … },
 },
