@@ -51,20 +51,6 @@ export type SiteSection = {
   label: string;
 };
 
-/**
- * 首页「在做」里的一个项目：一行一个，左边是项目名 badge（点进去是仓库），
- * 右边一句话描述。
- *
- * 项目与描述都只写在配置里，组件只管排版；地址也不写 —— 只写**仓库名**，
- * 地址由 `github.user` 推导（见 `repoUrl()`）。
- */
-type HomeProject = {
-  /** 仓库名：badge 上显示的就是它 */
-  repo: string;
-  /** 一句话描述（桌面端一行大约放得下 30 个字，再长会在右栏里折行） */
-  text: string;
-};
-
 type SiteConfig = {
   /** 站名：顶栏、页脚版权、页面标题后缀都用它 */
   name: string;
@@ -137,8 +123,12 @@ type SiteConfig = {
       doing: {
         /** 引子（「在做」，和「找我」一样不带冒号），下面是 items 里的项目 */
         title: string;
-        /** 项目，按这里的顺序从上往下排 */
-        items: HomeProject[];
+        /**
+         * 项目：只写**仓库名**，排成一行灰底小标签（badge 上显示的就是它，点进去是
+         * 仓库），按这里的顺序从左往右排，放不下自动换行。不带描述 —— 项目是做什么的，
+         * 仓库里写着。地址也不写，由 `github.user` 推导（见 `repoUrl()`）。
+         */
+        items: string[];
       };
       /**
        * 「找我」：只有引子 —— 下面那一行联系方式（GitHub / 邮箱 / 其他平台）
@@ -272,26 +262,11 @@ export const siteConfig: SiteConfig = {
       doing: {
         title: "在做",
         items: [
-          {
-            repo: "next-web-nav",
-            text: "一个简单好用的导航网站",
-          },
-          {
-            repo: "bongo-cat-next",
-            text: "现代化桌面宠物应用，可爱 Live2D 猫咪陪伴编程",
-          },
-          {
-            repo: "zhiyuan",
-            text: "本地优先的 Markdown 工作台",
-          },
-          {
-            repo: "deep-code",
-            text: "基于 DeepSeek 的终端 AI 编程助手",
-          },
-          {
-            repo: "video-to-ppt",
-            text: "基于 WebAV 和 FFmpeg 的现代化视频分析与 PPT 生成工具，支持屏幕录制、本地视频处理和在线视频分析",
-          },
+          "next-web-nav",
+          "bongo-cat-next",
+          "zhiyuan",
+          "deep-code",
+          "video-to-ppt",
         ],
       },
       contact: {
