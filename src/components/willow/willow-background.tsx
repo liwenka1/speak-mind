@@ -11,7 +11,8 @@ const maskStyle: CSSProperties | undefined = willowConfig.mask
   : undefined;
 
 /**
- * 首页背景的柳枝：先长出来，长完随风摆（画法见 `src/lib/willow.ts`，手感在 `src/config/willow.ts`）。
+ * 全站共用的背景柳枝：先长出来，长完随风摆（画法见 `src/lib/willow.ts`，手感在 `src/config/willow.ts`）。
+ * 挂在根布局里，切换页面时不会重新挂载 —— 只有刷新或第一次打开才重新长一棵。
  *
  * 一张 `fixed` 铺满视口的 canvas，`-z-10` 压在正文下面：页面背景色由 body 传给了根画布，
  * 负 z-index 的元素正好画在它上面、正文下面。`pointer-events-none` 不挡点击，打印时隐藏。
@@ -26,7 +27,7 @@ export function WillowBackground() {
   const color =
     resolvedTheme === "dark" ? willowConfig.color.dark : willowConfig.color.light;
 
-  // 挂载时开始长，卸载（离开首页）时停掉
+  // 挂载时开始长（根布局里只挂载一次：刷新或第一次打开），卸载时停掉
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;

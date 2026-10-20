@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { WillowBackground } from "@/components/willow/willow-background";
 import { siteConfig } from "@/config/site";
 import { fill } from "@/lib/template";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
+          {/*
+            柳枝背景，全站共用一棵：根布局在切换页面时不会重新挂载，所以同一棵树一直在，
+            只有刷新或第一次打开时才重新长。它 fixed 铺满视口、压在正文下面，放在哪儿都
+            不影响排版；放在 ThemeProvider 里面，颜色才能跟着日夜切换。
+          */}
+          <WillowBackground />
           <SiteHeader />
           {children}
           <SiteFooter />
