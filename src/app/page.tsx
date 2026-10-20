@@ -13,8 +13,9 @@ import { cn } from "@/lib/utils";
  * 名字（h1）与座右铭**刻意不参与入场动画**：标题一上来就在，随后正文自上而下浮现
  * —— 层次是"标题定住、内容进场"，整体不显得整页在动。
  *
- * 正文依次是首段自我介绍、「在做」（一行项目名 badge，点进去是仓库）、
- * 最后是「找我」那一行联系方式。分区不在这里再列一遍：顶栏导航已经把它们全列出来了。
+ * 正文依次是首段自我介绍（下面紧跟一行别的叫法）、「在做」（一行项目名 badge，
+ * 点进去是仓库）、最后是「找我」那一行联系方式。分区不在这里再列一遍：顶栏导航已经
+ * 把它们全列出来了。
  *
  * **出场顺序 = 排版顺序**：每一块挂上 `.enter` 并用 `enterAt()` 给出自己的序号
  * （延时 `序号 × 90ms`，规则见 globals.css）。纯 CSS，服务端渲染就带上了，不需要
@@ -84,9 +85,17 @@ export default function Home() {
       ) : null}
 
       <article className="mt-8 space-y-6">
-        <p className="enter" style={enterAt(INTRO_STAGE)}>
-          {fill(text.intro, VALUES)}
-        </p>
+        {/*
+          首段 + 紧跟着的一行别的叫法（aka，留空则不显示）：两行算一块、一起入场，
+          中间不空行 —— 它是自我介绍的后半句，不是新的一段。
+
+          `text-pretty`：窄屏折行时别让最后一行只剩一个字（「者。」「好。」）；
+          不支持 `text-wrap: pretty` 的浏览器照常折行。
+        */}
+        <div className="enter text-pretty" style={enterAt(INTRO_STAGE)}>
+          <p>{fill(text.intro, VALUES)}</p>
+          {text.aka ? <p>{fill(text.aka, VALUES)}</p> : null}
+        </div>
 
         {/*
           「在做」：一行项目名 badge，点进去是仓库；项目来自配置（text.doing.items，

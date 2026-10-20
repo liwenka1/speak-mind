@@ -118,6 +118,11 @@ type SiteConfig = {
        * 要提就用 `{author}` 占位符。
        */
       intro: string;
+      /**
+       * 首段下面紧跟的一行：别的叫法（「你也可以叫我…」）。和首段算同一块、
+       * 一起入场，中间不空行；留空则不显示。
+       */
+      aka: string;
       /** 「在做」那一段 */
       doing: {
         /** 引子（「在做」，和「找我」一样不带冒号），下面是 items 里的项目 */
@@ -258,6 +263,7 @@ export const siteConfig: SiteConfig = {
     home: {
       intro:
         "嗨，我是 {author}，软件工程师 和 开源爱好者。",
+      aka: "你也可以叫我文凯、Eren、E人或 kk，开心就好。",
       doing: {
         title: "在做",
         items: [
