@@ -129,7 +129,7 @@ export default async function SectionPage(props: PageProps<"/tag/[label]">) {
             </Button>
             {/*
               次级入口：想问「这是什么」而不是立刻动手的人，从这里去本仓库的 GitHub 页
-              —— README 就是这个站最完整的说明（官方 example 里对应那个 Learn more ↗）。
+              —— README 里是这个站的简介和用法（官方 example 里对应那个 Learn more ↗）。
               是外链：新窗口打开、图标用 ↗，地址由 repoUrl() 推导；nativeButton 同样要设 false。
             */}
             <Button

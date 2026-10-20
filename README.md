@@ -1,193 +1,44 @@
 # speak-mind
 
-一个把 **GitHub Issues 当内容管理器**的个人站（Next.js + Tailwind CSS）。
+VVenKAI 的个人站，分博客、日记、随笔三个分区。
 
-## 内容（由 GitHub Issues 驱动）
+内容就是这个仓库的 **GitHub Issues**：写一条 issue、打上分区标签，它就出现在站上；issue 下面的评论就是评论区。不需要数据库，也没有后台。
 
-站点内容直接来自本仓库的 **GitHub Issues**，不需要数据库或后台。
+技术栈：Next.js 16 · React 19 · Tailwind CSS 4 · shadcn/ui
 
-### 站点配置
+## 写内容
 
-站点的**所有信息与文案**都集中在 [`src/config/site.ts`](src/config/site.ts)，组件里不写死任何一句话 —— 改站名、改口号、改措辞都只动这一个文件。
+1. 在本仓库新建 issue，标题和正文（Markdown）就是文章。
+2. 打上分区标签：`blog` 博客、`diary` 日记、`essay` 随笔（标签第一次用时在 GitHub 上新建）。**没打标签的 issue 不会公开。**
+3. 关闭 issue 是从列表下架（详情页链接还能打开）；去掉标签才是彻底下线。
 
-```ts
-name: "speak-mind",          // 顶栏站名 / 页脚版权 / <title> 后缀
-lang: "zh-CN",               // <html lang>，也是日期格式化的语言
-timeZone: "Asia/Shanghai",   // 日期显示的时区
-description: "{author} 的个人站：…",   // 首页的 meta description，可用占位符
-author: {
-  name: "VVenKAI",           // 首页大标题（h1）就是它
-  motto: "Better Late than Never", // 首页名字下面那行（Playfair 真斜体）；留空则不显示
-  email: "2020583117@qq.com",// 填了就出现在首页「找我」与顶栏
-  links: [                   // 其他平台外链；GitHub 主页不用写这里
-    { label: "X", href: "https://x.com/liwenka1" },
-  ],
-},
-github: { user: "liwenka1", repo: "speak-mind" },  // 个人主页与仓库地址都由它推导
-pages: {
-  home: { href: "/", title: "首页" },
-},
-sections: [
-  { title: "日记", label: "diary" },
-  { title: "三言两语", label: "note" },
-  { title: "随笔", label: "essay" },
-],
-text: {                    // 页面文案，按页面分组
-  home: {                  // 首页：一行名字 + 几段正文
-    intro: "嗨，我是 {author} 👋 …",   // 首段（名字已经是 h1，要提就用 {author}）
-    doing: {               // 「在做」：一行项目名 badge（不带描述），点进去是仓库
-      title: "在做",
-      items: [             // 只写仓库名，地址由 repoUrl() 推导；按这里的顺序从左往右排
-        "next-web-nav",
-        "bongo-cat-next",
-        …
-      ],
-    },
-    contact: { title: "找我" },   // 下面那一行联系方式来自 authorLinks()
-  },
-  section: {               // 分区列表页
-    description: "{name} 的{title}",
-    empty: {               // 没有内容时渲染空状态（shadcn 的 Empty 组件）
-      title: "还没有内容",
-      description: "打上 {label} 标签的 issue 会自动出现在这个分区里。",
-      action: "去 GitHub 写一条",   // 主按钮：跳到新建 issue，标签已预填
-      guide: "这个站是怎么运作的",  // 次级文字链：去本仓库的 GitHub 页（README）
-    },
-    error: "暂时读不到内容：{error}",   // 读取失败时也用 Empty 渲染
-  },
-  entry: { … },            // 内容详情页的文案
-  footer: { copyright: "© {year} {author}" },
-  links: { github: "GitHub", email: "Email" },  // 推导链接的显示名
-  titleTemplate: "%s · {name}",
-  theme: { … }, common: { … },
-},
-```
+评论在详情页底部只读展示，想参与讨论就去对应的 issue 下留言。
 
-文案里的 `{xxx}` 是占位符，渲染时才填值：`{name}` 站名、`{author}` 作者显示名、`{title}` 分区名、`{label}` 分区对应的 GitHub 标签名、`{count}` 评论条数、`{year}` 年份、`{error}` 错误信息。**没配值的占位符会原样显示**，方便一眼看出漏配。实现见 [`src/lib/template.ts`](src/lib/template.ts)。
+## 配置
 
-- 导航**只有分区**（来自 `sections`）：**没有「首页」** —— 左上角的站标就是回首页的入口，同一件事不必说两遍；**也没有「关于」** —— 首页本身就是自我介绍，旧的 `/about` 在 [`next.config.ts`](next.config.ts) 里永久重定向（308）到首页，分享出去的链接不会 404。
-- **首页是「一行名字 + 几段正文」**：`<h1>` 是 `author.name`，紧贴着它的一行是座右铭 `author.motto`（Playfair 真斜体、浅色，留空则不显示）—— 这两行**不参与入场动画**（一进来就在，动的是下面的正文）；接着是首段（`intro`）、「在做」那一段（`doing.items`：**一行项目名 badge**，不带描述 —— 每个都带 ↗、点进去是仓库，地址由 `repoUrl()` 推导；放不下就自动换行，和「找我」一样整行算一块入场。badge 是灰底小标签而不是按钮，悬停底色用 `globals.css` 里的 `muted-hover` —— 这套主题的 accent 与 muted 同值，`hover:bg-accent` 等于没变）、以及「找我」——**就一行**「图标 + 文字」，内容与顺序都直接来自 `authorLinks()`（和顶栏同一份：GitHub / 邮箱 / 其他平台，邮箱的名在 `author.email` 里）；每个链接是浅色图标 + 实色文字 + 底下一条细线，悬停时只有那条线用 300ms 渐变成实色、图标和文字都不动（不用顶栏那套 60% 透明：这里是正文里的链接，字得看得清）。「在做」「找我」这两个引子都是浅色。首页不重复列分区。
-- **入场动画是纯 CSS**：页面内容自上而下逐个浮现 —— 每块挂 `.enter` 并用 `style={enterAt(n)}`（[`src/lib/enter.ts`](src/lib/enter.ts)）给出序号，延时 `n × 90ms`、时长 `1s`、缓动 `ease`，序号**从 1 起**（第一块也停一拍再出现），**最多等 8 拍**（超过的一起出来，长列表不会越往下越晚）；规则与这四个数都写在 `globals.css` 里。用在首页正文、分区列表的每一条（空状态分两块）、详情页的正文（整块）与评论区。**框架与标题不动**：顶栏页脚、首页的名字与详情页的标题、报错都不挂。动画在元素挂载时播放，所以每次进入页面（包括从文章返回列表）都会重播；`prefers-reduced-motion` 与打印时整段关掉。零 JS，不引入客户端组件。
-- **首页背景是一棵柳树，先长出来，长完随风摆**：主枝从屏幕边上伸进来，柳条一根根垂下、叶子一片片展开（默认 8 秒长完）；长完停一下，风在 3 秒里慢慢起来，之后形状不再变，只跟着风摆 —— 风一阵一阵从左往右扫过去，每根柳条的摆动从根部传到梢头。柳条越靠屏幕两边越长、中间越短，再加一层中间淡出的遮罩，正文那块几乎看不到柳枝；每次进入首页随机长一棵新的。**想调手感只改 [`src/config/willow.ts`](src/config/willow.ts)**（生长时长、风力、风速、疏密、长短、浓淡、颜色、遮罩、帧率）。画法在 [`src/lib/willow.ts`](src/lib/willow.ts)（一张 canvas，不装任何库，只依赖 DOM）；组件 [`willow-background.tsx`](src/components/willow/willow-background.tsx) 是 `fixed` 铺满视口、`-z-10` 压在正文下面，颜色跟着站内的日夜切换。摇摆阶段限到 30 帧，切到别的标签页就暂停；`prefers-reduced-motion` 时直接画长好的样子、不动，打印时隐藏。
-- **顶栏与页脚不做「工具条 + 分隔线」**：顶栏**全宽、两侧分布** —— 左上角是**站标**（手画的「wk」连写，一笔到底，会自己写一遍再擦掉，见 [`site-logo.tsx`](src/components/layout/site-logo.tsx) 与 `globals.css` 里的 `.site-logo path`），导航 / 联系方式 / 主题切换贴页面右边，正文仍是居中的窄列（`max-w-2xl`），所以宽屏上顶栏是张开的；没有背景、没有下边框、也不 sticky（跟内容一起滚走）。页脚只有一行版权，外链不在页脚重复。右侧所有条目**共用同一套间距与 hover**：60% 透明、hover 到 100%，没有底色也没有边框 —— 图标按钮看起来就该像旁边那些分区链接，而不是一排控件（所以联系方式是 `<a>` 直接加类名、主题切换用原生 `<button>`，**都不用 shadcn 的 `Button`**：套上既会被 Base UI 加上 `role="button"`，ghost 那身皮也和「像 tag」冲突）。联系方式图标只看地址（`mailto:` / GitHub 主页 / x.com，认不出来给通用链接图标），可访问名与悬停提示仍取配置里的标签，窄屏只藏掉这一组（首页「找我」里另有完整的一行）。图标统一走 [`src/components/icons/remix.tsx`](src/components/icons/remix.tsx)：**Remix Icon**（Apache-2.0）的 `-line` 变体 —— GitHub / 邮箱 / X / 太阳 / 月亮在一个集合里就齐了，笔画一致；只内置用到的那几个路径，不装整套图标库。顶栏不放「源码」链接（`links.source` 已删除）；`repoUrl()` 只服务首页「在做」里的项目 badge 和分区空状态里「这个站是怎么运作的」那条链接（指向本仓库），别处要放地址也别手写（见下面「去重规则」）。
-- **标签页图标**与顶栏标记**共用同一份路径数据**（[`site-logo.tsx`](src/components/layout/site-logo.tsx) 里的 `SITE_LOGO_PATH`）：由 [`src/app/icon/route.ts`](src/app/icon/route.ts) 生成到 `/icon` —— 笔画 4.5（`/icon` 而不是 `/icon.svg` 是因为目录名撞上了 Next 的元数据文件约定，所以根布局里要显式写 `metadata.icons`），不做动画，并按 `prefers-color-scheme` 在深浅两色间切换（favicon 只能跟系统的明暗，跟不了站内的 `.dark` 类）。
-- **日夜切换是从按钮扩散的**：点主题按钮时用 View Transitions 把整页快照成新旧两层，再让新层从一个圆放大到盖满视口 —— 圆心取按钮中心（不是鼠标坐标，键盘触发也一样），半径取到视口最远角，因此看着就是「从右上角扩散」。逻辑在 [`theme-toggle.tsx`](src/components/theme/theme-toggle.tsx)，伪元素那半规则在 `globals.css`；浏览器不支持 View Transitions（或系统开了「减弱动态效果」）时直接切主题，没有动画。
-- `sections` 里 `title` 是显示名，`label` 是对应的 GitHub issue 标签；增删分区、改名字、换标签都只改这里（数量不限）。
-- 每个分区会自动生成一个静态页 `/tag/<label>`。
-- 子页面标题不用自己拼站名：`text.titleTemplate` 会补成「某某 · 站名」。
-- 分区还没内容时渲染**空状态**（shadcn 的 [`Empty`](src/components/ui/empty.tsx)），骨架照官方 Empty 的 example：图标 + 标题（`EmptyTitle`）+ 一行说明（`EmptyDescription`，`{label}` 是这个分区对应的 GitHub 标签名）+ 两个动作 —— 实心主按钮直接跳到 GitHub 新建 issue 并**预填该分区标签**（地址由 `newIssueUrl()` 推导），下面一条次级文字链去本仓库的 GitHub 页（README 就是这个站怎么运作的完整说明，新窗口打开）。**说明那行不能省**：空状态好看的本质是「留白 + 文字层次」，只剩一行标题时，中间那块留白就是没有信息的空洞。空状态不重复分区名、也不加边框（用 registry 默认版式）。读取失败时复用同一套 `Empty` 外壳，图标带 destructive 色调。
-
-### 去重规则
-
-同一个**事实**只写一次，其他地方一律引用或推导：
-
-- **URL 不是独立事实**：GitHub 主页（`githubUrl()`）、新建 issue（`newIssueUrl()`）、分区页路径（`sectionPath()`）、详情页路径（`entryPath()`）全部由配置拼出来 —— 配置里、组件里都不要手写 `https://github.com/...` 或 `/tag/xxx`。
-- **名字不重抄**：页面名字写在 `pages` / `sections` 里，别处的文案要引用就写占位符（如分区页 description 的 `{title}`）。
-- **显示名与 GitHub 用户名是两个事实**：`author.name`（`VVenKAI`）与 `github.user`（`liwenka1`）故意分开配置 —— 将来把显示名改成中文名，也不必动 GitHub 用户名，不要合并。
-- `lang` / `timeZone` 也同时供日期格式化使用（见 [`src/lib/format.ts`](src/lib/format.ts)），改一处全站生效。
-
-有些重复是**故意保留**的（去重只针对「会一起变化的事实」）：`github.repo` 与 `name` 可能同值但语义不同（不默认取站名，避免静默指向错仓库）；`package.json` 的包名读不到 TS 配置；README 的示例需与配置同步。
-
-### 写内容
-
-在 GitHub 上新建 issue → 写好标题和正文 → 打上对应分区的标签（标签名第一次用时可直接新建）。页面缓存 1 小时，稍后刷新即可看到。
-
-**标签就是「发布」开关：**
-
-- 没打标签的 issue 不会出现在任何地方 —— 详情页 `/entry/<编号>` 要求命中至少一个分区标签，否则页面 404，`generateMetadata` 也一并返回空、**不把标题写进 `<head>`**（Next 会把页面外壳连同 `<head>` 先发出去，再渲染 not-found，所以两头都得拦）。所以草稿在打上标签之前是不公开的（issue 编号从 1 连续递增，别指望「编号猜不到」能保密）。标签名按大小写不敏感比较，和 GitHub 的 `labels=` 过滤保持一致。
-- 关闭 issue 等于**从分区列表下架**，但已经发出去的详情页链接仍然打得开（`state=open` 只作用于列表）。要让一条内容彻底消失，删掉 issue 或**去掉它的分区标签**都行 —— 后者更轻，详情页会直接 404。
-
-### 评论
-
-评论会**只读展示**在内容详情页底部（`/entry/<编号>`）。站点不提供发表评论的能力 —— 想参与就点评论区底部的「去 GitHub 参与讨论」，回到对应的 issue。
-
-- 评论条数直接来自 GitHub 的 issue 对象；**只有确实有评论时**才去请求评论列表。正文与评论分别降级 —— 评论读不到不影响读正文。
-- 评论的 Markdown 与正文共用同一套渲染（GFM），**不启用 raw HTML**。
-- 头像用原生 `<img>` 渲染，不走 `next/image`：后者的域名白名单是构建期配置，而头像地址是运行时数据，没配上的域会让整个页面报错 —— 不值得为一个装饰性头像连累正文。
-
-### 路由
-
-| 路径 | 说明 |
-| --- | --- |
-| `/` | 首页（名字 + 自我介绍 + 在做 + 找我） |
-| `/tag/<label>` | 分区列表 |
-| `/entry/<编号>` | 内容详情 |
-
-> 页面名由顶栏导航的高亮承担，页面里不再重复一个大标题 —— 只有首页例外：它的 `<h1>` 就是 `author.name`（顶栏左上角是站标、没有字样，所以不算重复）。其余页面仍保留一个 `sr-only` 的 `<h1>` 给屏幕阅读器和文档大纲。内容详情页的 `<h1>` 是 issue 自己的标题，不属于重复，保留显示。
-
-### 正文排版
-
-正文（issue 的 Markdown 与评论共用同一个渲染组件）交给 shadcn 的 [Typeset](https://ui.shadcn.com/docs/typeset)：
-
-- [`src/app/typeset.css`](src/app/typeset.css) 是从官方直链原样下载的，**不要改它** —— 升级就是重新下一份覆盖
-- 项目自己的调参放在 [`globals.css`](src/app/globals.css) 的 `.typeset-article` 预设里，三个值决定全部节奏：`--typeset-size`（16px）、`--typeset-leading`（1.8）、`--typeset-flow`（1.4em）。改这三个值就能整体调松紧，不必碰元素级样式
-- `--typeset-font-heading` 必须指回 `--font-heading-cjk`：Typeset 的 heading 规则在 `@layer components` 层，会盖掉 `@layer base` 里 `h1–h6` 那条含中文宋体兜底的栈
-- 圆角由 `--radius` 一个值按比例推导（见该变量上方的注释）：控件（按钮）用 `rounded-md`，面板与图标框用 `rounded-lg`
-
-> Typeset 不设最大宽度 —— 宽度由布局（`main` 的 `max-w-2xl`）拥有。
-
-### 环境变量
-
-| 变量 | 说明 |
-| --- | --- |
-| `GITHUB_TOKEN` | 可选；GitHub 匿名接口限流 60 次/小时，配只读 token 可提升到 5000 次/小时 |
-| `REVALIDATE_SECONDS` | 可选；内容缓存时长（秒），默认 `3600`。本地调试设 `1` 可做到「写完刷新就能看到」 |
-
-> 这两个变量都**仅在服务端读取**，切勿加 `NEXT_PUBLIC_` 前缀。站点名、仓库与分区属于站点信息，写在 `src/config/site.ts` 里 —— 环境变量只放**部署相关的密钥与策略**。
->
-> **缓存其实有两层**，`REVALIDATE_SECONDS` 只管第一层：
->
-> 1. **数据缓存**：GitHub 响应的缓存时长，由 `REVALIDATE_SECONDS` 控制（本地用 `.env.local` 覆盖）。
-> 2. **页面缓存**：`src/app/tag/[label]/page.tsx` 与 `src/app/entry/[number]/page.tsx` 里的 `export const revalidate = 3600`。Next 要求这里是字面量（要静态分析），所以它读不了环境变量 —— 调整线上更新策略时，这两处要跟 `REVALIDATE_SECONDS` 一起改。
-
-### 内容更新后秒级刷新（可选）
-
-默认只靠 `REVALIDATE_SECONDS` 定时过期，最长要等一个 TTL 才看得到更新。配上 GitHub Webhook 就能做到**发布即刷新**，平时零轮询开销：
-
-1. 生成本地/线上各自的 secret：`openssl rand -hex 32`
-2. 在部署环境里配上它（Vercel → Settings → Environment Variables）：`GITHUB_WEBHOOK_SECRET=<刚生成的值>`
-3. 仓库 → Settings → Webhooks → Add webhook：
-   - **Payload URL**：`https://<你的域名>/api/revalidate`
-   - **Content type**：`application/json`
-   - **Secret**：与第 2 步**完全一致**
-   - **Which events**：勾 **Issues** 与 **Issue comments**
-4. GitHub 会先发一个 `ping`，接口返回 `{"ok":true}` 就算接通了。
-
-之后 issue 的**新建 / 修改 / 删除 / 关闭 / 重开 / 打标签 / 取消标签**，以及评论的**新增 / 修改 / 删除**都会立刻刷新；其他事件（push、assigned…）会被忽略。不配这个 webhook 也完全能用，只是更新延迟由 TTL 决定。
-
-**接口防护**（实现见 [`src/app/api/revalidate/route.ts`](src/app/api/revalidate/route.ts)）：
-
-- 只接受 POST；必须带 `X-Hub-Signature-256`，用 secret 对**原始请求体**做 HMAC-SHA256 并**常量时间比较** —— 没有 secret 的人无法触发刷新，所以不需要额外的限流。
-- **没配 secret 就直接 500**（fail closed），绝不会「跳过校验」裸奔；站点其余功能不受影响。
-- 签名通过之后才判断事件类型与仓库，只认本仓库的 `issues` 事件。
-- 认证失败一律同一个 401，不回显 payload 或错误细节。
-
-本地 dev 收不到 webhook（除非开隧道），日常仍用 `.env.local` 里的 `REVALIDATE_SECONDS=1`。想单独测这个接口，自己签一个 payload：
-
-```bash
-SECRET=...    # 与 .env.local 里的 GITHUB_WEBHOOK_SECRET 一致
-BODY='{"action":"opened","repository":{"full_name":"liwenka1/speak-mind"}}'
-SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')"
-
-curl -i -X POST http://localhost:3000/api/revalidate \
-  -H "X-GitHub-Event: issues" \
-  -H "X-Hub-Signature-256: $SIG" \
-  --data "$BODY"
-# 200 = 通过；把签名改一个字符再试 → 401
-```
-
-### 部署到 Vercel
-
-1. 把仓库导入 Vercel 即可，无需额外构建配置。
-2. 在 **Settings → Environment Variables** 中添加 `GITHUB_TOKEN`（只读 PAT）。
-   - **强烈建议配置**：Vercel 的构建与函数使用**共享出口 IP**，GitHub 匿名接口 60 次/小时的额度很容易被其它用户耗尽，会导致构建失败或页面报错；配了 token 则是 5000 次/小时（按你的 token 计）。有评论的内容详情页会多一次请求（正文 + 评论各一个），`GITHUB_TOKEN` 就更值得配了。
+站名、作者、分区和页面文案都在 [`src/config/site.ts`](src/config/site.ts)，改这一个文件就行。
 
 ## 本地开发
 
 ```bash
-pnpm dev
+pnpm install
+pnpm dev   # http://localhost:3000
 ```
 
-打开 <http://localhost:3000> 即可（本项目用 pnpm，锁文件是 `pnpm-lock.yaml`）。
+可选的环境变量见 [`.env.example`](.env.example)（复制成 `.env.local` 再填）。
 
-字体通过 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 加载：标题用 Playfair Display（衬线），正文用 Noto Sans，中文会自动回退到系统字体（宋体 / 黑体）。首页座右铭用的 Playfair **斜体**只在 [`src/app/page.tsx`](src/app/page.tsx) 里声明 —— next/font 在哪个文件调用就只在那条路由上预加载，放进根布局会让每个页面都多预加载一个只有首页用得上的斜体文件；根布局那份 Playfair 只有正体，所以别处写 `italic` 只会得到浏览器硬掰的假斜体。中文字体栈（`--font-heading-cjk`、`html` 的 `font-family`）都定义在 `globals.css` —— 注意 Tailwind 的 `font-sans` / `font-heading` / `font-mono` 工具类**只有拉丁字形**（`@theme inline` 内联的是 next/font 的表达式，不含中文兜底），所以带中文的元素要靠继承，或像 EmptyTitle 那样在 `globals.css` 里补栈。
+## 部署
+
+导入 Vercel 即可，不需要额外的构建配置。环境变量都只在服务端读取：
+
+| 变量 | 作用 |
+| --- | --- |
+| `GITHUB_TOKEN` | 只读 token，GitHub 接口限额从 60 次/小时提到 5000 次/小时；线上建议配 |
+| `REVALIDATE_SECONDS` | 内容缓存时长（秒），默认 `3600` |
+| `GITHUB_WEBHOOK_SECRET` | 配合下面的 webhook：issue 一有改动，站上立刻刷新 |
+
+想让改动立刻生效，就在仓库 **Settings → Webhooks** 加一个：Payload URL 填 `https://<你的域名>/api/revalidate`，Content type 选 `application/json`，Secret 与 `GITHUB_WEBHOOK_SECRET` 一致，事件勾 **Issues** 和 **Issue comments**。不配也能用，只是要等缓存过期。
+
+## License
+
+[MIT](LICENSE)

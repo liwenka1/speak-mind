@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-/* Markdown 正文排版：shadcn/typeset 官方文件（https://ui.shadcn.com/docs/typeset） */
+/*
+  Markdown 正文排版：shadcn/typeset 官方文件（https://ui.shadcn.com/docs/typeset），原样下载、
+  **不要改它** —— 升级就重新下一份覆盖；项目自己的调参放在下面的 `.typeset-article`。
+*/
 @import "./typeset.css";
 
 /* 用 class 控制暗色模式（配合 next-themes 写入 <html class="dark">），而非跟随系统媒体查询 */

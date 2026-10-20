@@ -170,7 +170,7 @@ export default async function EntryPage(props: PageProps<"/entry/[number]">) {
             评论区：站内只展示，不能在这里发 —— 底部留一个入口回 GitHub。
 
             入场排在正文后面（第 2 拍）。长文时它在屏幕外，动画早就播完了；但短内容
-            （比如「三言两语」）的评论区就在首屏，不挂就成了"正文在浮、评论区早就在那"。
+            （比如只有一两句话的日记）的评论区就在首屏，不挂就成了"正文在浮、评论区早就在那"。
           */}
           <section
             className="enter mt-16 border-t border-border pt-8"

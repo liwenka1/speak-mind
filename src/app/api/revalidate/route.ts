@@ -25,7 +25,19 @@ import { siteConfig } from "@/config/site";
  *
  * 本地 dev 收不到 GitHub 的 webhook（除非开隧道），平时靠 `.env.local` 里的
  * `REVALIDATE_SECONDS=1` 立即看到内容；要单独测这个接口，就用 `.env.local` 里的
- * secret 自己签一个 body POST 过来（README 有示例）。
+ * secret 自己签一个 body POST 过来：
+ *
+ * ```bash
+ * SECRET=...    # 与 .env.local 里的 GITHUB_WEBHOOK_SECRET 一致
+ * BODY='{"action":"opened","repository":{"full_name":"liwenka1/speak-mind"}}'
+ * SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')"
+ *
+ * curl -i -X POST http://localhost:3000/api/revalidate \
+ *   -H "X-GitHub-Event: issues" \
+ *   -H "X-Hub-Signature-256: $SIG" \
+ *   --data "$BODY"
+ * # 200 = 通过；把签名改一个字符再试 → 401
+ * ```
  */
 
 /** 与 `src/lib/github.ts` 里 fetch 的 tags 保持一致 */

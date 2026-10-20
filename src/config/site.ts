@@ -24,8 +24,7 @@
  * 去重只针对「会一起变化的事实」，下面这些重复是**故意**的，不要"优化"掉：
  * - `github.repo` 与 `name` 可能同值，但站名与仓库名是两个事实（见字段注释）；
  * - `package.json` 的包名与 `name`：npm 标识读不到 TS 配置；
- * - 上面的 `type SiteConfig` 与下面的字面量：类型是形状契约，换来编辑期校验与补全；
- * - README 里的配置示例：文档，需与配置同步。
+ * - 上面的 `type SiteConfig` 与下面的字面量：类型是形状契约，换来编辑期校验与补全。
  *
  * 文案里的 `{xxx}` 占位符由 `src/lib/template.ts` 填充。
  */
@@ -227,7 +226,7 @@ export const siteConfig: SiteConfig = {
   name: "speak-mind",
   lang: "zh-CN",
   timeZone: "Asia/Shanghai",
-  description: "{author} 的个人站：日记、三言两语与随笔，内容由 GitHub Issues 驱动。",
+  description: "{author} 的个人站：博客、日记与随笔，内容由 GitHub Issues 驱动。",
 
   author: {
     name: "VVenKAI",
@@ -250,8 +249,8 @@ export const siteConfig: SiteConfig = {
   },
 
   sections: [
+    { title: "博客", label: "blog" },
     { title: "日记", label: "diary" },
-    { title: "三言两语", label: "note" },
     { title: "随笔", label: "essay" },
   ],
 
