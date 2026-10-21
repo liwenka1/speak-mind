@@ -17,6 +17,11 @@ const maskStyle: CSSProperties | undefined = willowConfig.mask
  * 一张 `fixed` 铺满视口的 canvas，`-z-10` 压在正文下面：页面背景色由 body 传给了根画布，
  * 负 z-index 的元素正好画在它上面、正文下面。`pointer-events-none` 不挡点击，打印时隐藏。
  *
+ * 高度是 `100lvh`（大视口：手机地址栏收起时的高度），**不跟着可视区域变**：手机上下滑动时
+ * 地址栏会伸缩，画布要是跟着变高变矮，旧画面会先被浏览器拉伸、等重画了再弹回来，按百分比
+ * 算的遮罩也会跟着挪 —— 看着就是树"轻微重画"了一下。定成大视口的高度后，地址栏露出来时
+ * 只是最底下一截（最淡的柳梢）被它盖住。
+ *
  * 颜色跟着站内的日夜切换走：`resolvedTheme` 由 next-themes 给出，客户端首帧就是真实值
  * （只在 effect 里用，不参与渲染，所以不会有水合不一致）。
  */
@@ -48,7 +53,7 @@ export function WillowBackground() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 size-full print:hidden"
+      className="pointer-events-none fixed top-0 left-0 -z-10 h-lvh w-full print:hidden"
       style={maskStyle}
     />
   );

@@ -643,12 +643,19 @@ export function startWillow(
     else drawStill();
   }
 
+  /** 量画布的显示尺寸、按像素密度分配画布；尺寸和密度都没变就不动它，返回 false */
   function measure() {
-    W = canvas.clientWidth;
-    H = canvas.clientHeight;
-    dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1);
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    const d = Math.min(MAX_DPR, window.devicePixelRatio || 1);
+    if (w === W && h === H && d === dpr) return false;
+    W = w;
+    H = h;
+    dpr = d;
+    // 给 width / height 赋值会清空画布，所以只在真变了的时候做
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
+    return true;
   }
 
   function onResize() {
@@ -656,8 +663,10 @@ export function startWillow(
     resizeTimer = window.setTimeout(() => {
       const oldW = W;
       const oldH = H;
-      measure();
-      // 只是手机地址栏伸缩（高度小变）：形状不动，接着画；尺寸真变了才按新尺寸重排
+      // 尺寸和像素密度都没变就什么都不做：手机地址栏伸缩也会触发 resize，但画布按大视口
+      // 定高（见组件），不跟着变
+      if (!measure()) return;
+      // 高度只是小变：形状不动，接着画；宽度变了或高度大变（比如横竖屏切换）才按新尺寸重排
       if (Math.abs(W - oldW) >= 1 || Math.abs(H - oldH) >= 120) {
         // 同一个种子按新尺寸重排；已经长完的直接摆，不重播生长
         const grown = clock >= scene.growEnd;
